@@ -25,6 +25,8 @@ export type League = {
   code: string;
   color: string;
   flagUrl?: string;
+  /** Anzahl Spieltage/Runden der Saison (leagues.rounds_total, optional) */
+  roundsTotal?: number;
   /** false = „bald verfügbar“, noch nicht wählbar */
   available: boolean;
 };

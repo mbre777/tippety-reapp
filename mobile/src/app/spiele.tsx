@@ -14,8 +14,6 @@ import { useMyLeagues } from '@/sport/useMyLeagues';
 import { useTheme } from '@/theme/ThemeProvider';
 
 const WD = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-/** Saisonlänge für leere Chips (Design: Fußball ST 1–34, Eishockey Runde 1–52) */
-const TOTAL = { football: 34, hockey: 52 } as const;
 const localDay = (iso: string) => {
   const d = new Date(iso);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -31,7 +29,7 @@ export default function Spiele() {
   const leagueId = (params.league && sportLeagues.some((l) => l.id === params.league) ? params.league : undefined) ?? favorite?.id ?? ids[0];
   const all = useQuery(() => (leagueId ? repo.getLeagueMatches(leagueId) : Promise.resolve([] as Match[])), [leagueId, version]).data;
   const [now] = useState(() => Date.now());
-  const rounds = useMemo(() => (all ? groupRounds(all, sport, now, TOTAL[sport]) : []), [all, sport, now]);
+  const rounds = useMemo(() => (all ? groupRounds(all, sport, now, sportLeagues.find((l) => l.id === leagueId)?.roundsTotal) : []), [all, sport, now, sportLeagues, leagueId]);
   const current = rounds.find((r) => r.phase === 'current');
   const round = rounds.find((r) => r.key === params.round) ?? current ?? rounds[0];
   const select = (key: string) => router.setParams({ round: key });

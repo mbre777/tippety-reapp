@@ -1,13 +1,13 @@
 import type { TippetyRepository } from '../repository';
 import type { Group, Match } from '../types';
-import { groups as G, joinableGroups, leaderboardFor, matches, myRank, myStatsBase } from './fixtures';
+import { groups as G, joinableGroups, leaderboardFor, matches, myRank, myStatsBase, withMatchday } from './fixtures';
 import { leagues } from './teams';
 import { notifyTipsChanged } from '../events';
 import { getSession } from '@/auth/session';
 import { normalizeCode, randomCode } from '@/lib/inviteCode';
 
 const delay = <T,>(v: T): Promise<T> => new Promise((r) => setTimeout(() => r(v), 0));
-const store: Match[] = matches.map((m) => ({ ...m }));
+const store: Match[] = withMatchday(matches).map((m) => ({ ...m }));
 const myGroups: Group[] = G.map((g) => ({ ...g }));
 const byKick = (a: Match, b: Match) => `${a.kickoff}|${a.id}`.localeCompare(`${b.kickoff}|${b.id}`);
 const isOpen = (m: Match, now = Date.now()) => m.status === 'scheduled' && Date.parse(m.kickoff) > now;
