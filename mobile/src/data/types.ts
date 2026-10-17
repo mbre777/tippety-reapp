@@ -3,6 +3,8 @@ export type Sport = 'football' | 'hockey';
 export type Team = {
   id: string;
   name: string;
+  /** Kurzname für Listen (z. B. „FC Bayern“) */
+  shortName?: string;
   /** Kürzel fürs Platzhalter-Wappen, max. 3–4 Zeichen */
   short: string;
   /** Vereinsfarben: [Grundfarbe, Schriftfarbe] */
@@ -14,11 +16,22 @@ export type League = {
   sport: Sport;
   name: string;
   country: string;
+  flag: string;
+  /** Kürzel fürs Liga-Badge */
+  code: string;
+  color: string;
+  flagUrl?: string;
+  /** false = „bald verfügbar“, noch nicht wählbar */
+  available: boolean;
 };
 
-export type MatchStatus = 'scheduled' | 'live' | 'finished';
+/** = matches.status in Supabase. postponed/cancelled sind gesperrt (tip_locked). */
+export type MatchStatus = 'scheduled' | 'live' | 'finished' | 'postponed' | 'cancelled';
 
 export type Score = { home: number; away: number };
+
+/** Wie wurde das Spiel entschieden (Eishockey): reguläre Zeit, Verlängerung, Penaltyschießen */
+export type Decision = 'regular' | 'overtime' | 'shootout';
 
 export type CommunityTips = { home: number; draw: number; away: number; total: number };
 
@@ -33,18 +46,24 @@ export type Match = {
   home: Team;
   away: Team;
   status: MatchStatus;
+  /** Wertungsergebnis: Fußball nach 90 Min, Eishockey nach 60 Min */
   result?: Score;
+  /** Endergebnis inkl. n.V./n.P. (nur wenn abweichend) */
+  finalResult?: Score;
+  decision?: Decision;
   myTip?: Score;
   community: CommunityTips;
   topMatch?: boolean;
+  /** Spieltag-Nummer (falls vom Schema geliefert) */
+  matchday?: number;
 };
 
-export type LeaderboardPeriod = 'total' | 'week' | 'month' | 'group';
+export type LeaderboardPeriod = 'season' | 'round' | 'month';
 
 export type LeaderboardEntry = {
   rank: number;
   userId: string;
-  name: string;
+  nickname: string;
   initials: string;
   points: number;
   trend: 'up' | 'down' | 'same';
@@ -54,31 +73,35 @@ export type LeaderboardEntry = {
 export type Group = {
   id: string;
   name: string;
-  sport: Sport | 'both';
+  /** Ligen der Gruppe (Anzeige nur geschnitten mit den Ligen des Users) */
+  leagueIds: string[];
   members: number;
   myRank: number;
   weekDelta: number;
   inviteCode: string;
-  kind: 'challenge' | 'private';
-  subtitle?: string;
+  isPrivate: boolean;
+  leader: string;
+  memberInitials: string[];
+  /** true = Ligen der Gruppe sind bekannt (sonst: alle eigenen Ligen angenommen) */
+  leaguesKnown?: boolean;
 };
 
 export type UserStats = {
-  userId: string;
-  name: string;
-  initials: string;
   points: number;
   hits: number;
   tips: number;
   rank: number;
-  streak: { done: number; of: number };
-  /** Lieblingsliga je Sportart (für die Header-Pill) */
-  favoriteLeagueId: string;
+  /** Liga, auf die sich der Rang bezieht */
+  leagueId: string;
 };
 
 export type OpenRoundTips = {
   leagueId: string;
   leagueName: string;
   round: string;
+  total: number;
   open: Match[];
+  tipped: Match[];
 };
+
+export type NewGroup = { name: string; leagueIds: string[]; isPrivate: boolean };
