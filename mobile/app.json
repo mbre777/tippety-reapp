@@ -29,7 +29,16 @@
       "expo-router",
       "expo-font",
       "expo-status-bar",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#13874a"
+        }
+      ]
     ],
     "scheme": "tippety"
   }
