@@ -13,7 +13,7 @@ import { normalizeCode } from '@/lib/inviteCode';
  * für Migration 0005 (feat/schema-client-gaps). Fehlt eine Spalte/RPC → bisherige Ersatzlösung.
  * Vertrag: docs/client-api-vertrag.md
  */
-type TeamRow = { id: string; name: string; short_name: string | null; color?: string | null; primary_color?: string | null; secondary_color?: string | null; text_color?: string | null };
+type TeamRow = { id: string; name: string; short_name: string | null; color?: string | null; primary_color?: string | null; secondary_color?: string | null; text_color?: string | null; short_display_name?: string | null };
 type MatchRow = {
   id: string; sport: Match['sport']; league_id: string; round: string | null; kickoff_at: string; status: Match['status'];
   home_regular: number | null; away_regular: number | null; home_final: number | null; away_final: number | null; decided_by: Match['decision'] | null;
@@ -23,9 +23,9 @@ type MatchRow = {
 const BASE = 'id,sport,league_id,round,kickoff_at,status,home_regular,away_regular,home_final,away_final,decided_by';
 // Keine Vereinslogos: logo_url wird bewusst nicht geladen.
 const TEAM_BASE = 'id,name,short_name';
-/** level 2 = Vereinsfarben (feat/team-colors-at) + 0005, 1 = nur 0005 (teams.color), 0 = Basis */
-const sel = (level: 0 | 1 | 2) => {
-  const t = level === 2 ? `${TEAM_BASE},color,primary_color,secondary_color,text_color` : level === 1 ? `${TEAM_BASE},color` : TEAM_BASE;
+/** level 3 = + teams.short_display_name (Kurzname, geplant), 2 = Vereinsfarben + 0005, 1 = nur 0005 (teams.color), 0 = Basis */
+const sel = (level: 0 | 1 | 2 | 3) => {
+  const t = level === 3 ? `${TEAM_BASE},color,primary_color,secondary_color,text_color,short_display_name` : level === 2 ? `${TEAM_BASE},color,primary_color,secondary_color,text_color` : level === 1 ? `${TEAM_BASE},color` : TEAM_BASE;
   return `${BASE}${level ? ',is_top_match,matchday,venue' : ''},home:teams!matches_home_team_id_fkey(${t}),away:teams!matches_away_team_id_fkey(${t})`;
 };
 type Builder = ReturnType<ReturnType<ReturnType<typeof supabase>['from']>['select']>;
@@ -38,7 +38,8 @@ async function queryMatches(f: (b: Builder) => Res): Promise<unknown> {
     return r.data;
   };
   const level1 = () => tryFeature<unknown>('matches_0005', () => f(supabase().from('matches').select(sel(1))), level0);
-  return tryFeature<unknown>('team_colors', () => f(supabase().from('matches').select(sel(2))), level1).catch((e) => {
+  const level2 = () => tryFeature<unknown>('team_colors', () => f(supabase().from('matches').select(sel(2))), level1);
+  return tryFeature<unknown>('team_short_display_name', () => f(supabase().from('matches').select(sel(3))), level2).catch((e) => {
     throw mapDbError(e);
   });
 }
@@ -56,7 +57,8 @@ const team = (t: TeamRow): Team => {
   // primary_color (neu) → color (Alias/alt) → neutral
   const c = resolveTeamColors(t.primary_color ?? t.color, t.secondary_color, t.text_color);
   const s = t.short_name?.trim();
-  return { id: t.id, name: t.name, shortName: s && s.length > 4 ? s : undefined, short: abbr(t), colors: [c.bg, c.fg], secondary: validHex(t.secondary_color), noColors: c.fallback };
+  return { id: t.id, name: t.name, // Kurzname kommt aus eigenem DB-Feld (short_display_name); short_name ist das Kürzel. Fehlt er → voller Name.
+    shortName: t.short_display_name?.trim() || (s && s.length > 4 ? s : undefined), short: abbr(t), colors: [c.bg, c.fg], secondary: validHex(t.secondary_color), noColors: c.fallback };
 };
 const pair = (h: number | null, a: number | null): Score | undefined => (h != null && a != null ? { home: h, away: a } : undefined);
 const EMPTY_COMMUNITY: CommunityTips = { home: 0, draw: 0, away: 0, total: 0 };
