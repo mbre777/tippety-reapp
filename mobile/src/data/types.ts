@@ -55,6 +55,8 @@ export type Match = {
   /** Endergebnis inkl. n.V./n.P. (nur wenn abweichend) */
   finalResult?: Score;
   decision?: Decision;
+  /** Spielminute bei Live-Spielen (optional, falls die Datenquelle sie liefert) */
+  minute?: number;
   myTip?: Score;
   community: CommunityTips;
   topMatch?: boolean;
