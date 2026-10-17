@@ -11,15 +11,13 @@ export function Screen({ header, children, footer }: { header: ReactNode; childr
   const insets = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: TOOLBAR_SPACE + insets.bottom + (footer ? 76 : 0) }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: TOOLBAR_SPACE + insets.bottom + 16 }} showsVerticalScrollIndicator={false}>
         {header}
         <View style={{ marginTop: -SHEET_OVERLAP, backgroundColor: c.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 18, paddingTop: 18, minHeight: 600 }}>
           {children}
+          {footer ? <View style={{ marginTop: 20 }}>{footer}</View> : null}
         </View>
       </ScrollView>
-      {footer ? (
-        <View style={{ position: 'absolute', left: 18, right: 18, bottom: TOOLBAR_SPACE + insets.bottom - 4 }}>{footer}</View>
-      ) : null}
     </View>
   );
 }
