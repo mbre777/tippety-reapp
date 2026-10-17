@@ -96,3 +96,12 @@ Supabase → Authentication → URL Configuration → Redirect URLs:
 - `exp://**`  (Expo Go; Host/IP ändert sich je nach LAN/Tunnel, z. B. `exp://192.168.x.x:8081/--/auth-callback` oder `exp://xyz-anonymous-8081.exp.direct/--/auth-callback`)
 - `tippety://auth-callback`  (Dev/Store-Build)
 - `http://localhost:8081/auth-callback`  (Web lokal)
+
+### Update: echte Ursache (per curl belegt)
+Supabase Auth verwirft **jede** `redirect_to`-URL mit IP-Adresse als Host (außer 127.0.0.1/::1), egal was in der
+Allowlist steht (Sicherheitsfix supabase/auth#1984, Issue #2039). Test über `/auth/v1/callback` mit echtem state:
+- `exp://192.168.178.21:8081/--/auth-callback` → Fallback `tippety://auth-callback` (auch bei exaktem Eintrag)
+- `exp://x.exp.direct/--/auth-callback`, `exp://localhost:8081/--/a`, `exp://host:8081/--/…` → werden übernommen
+
+**Expo Go deshalb immer mit Tunnel starten:** `npm run start:tunnel` (`expo start --tunnel`). Dann ist redirectTo
+`exp://<id>-anonymous-8081.exp.direct/--/auth-callback`, und `exp://**` greift.
