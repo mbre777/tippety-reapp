@@ -8,11 +8,10 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { TeamBadge } from '@/components/TeamBadge';
 import { CheckIcon, ClockIcon, InfoIcon, MinusIcon, PlusIcon, ShareIcon } from '@/components/Icons';
-import { resultLine } from '@/components/MatchCard';
 import { Screen } from '@/components/Screen';
 import { MOCK_TODAY, leagueName, repo, useQuery, type Match, type Score, type Team } from '@/data';
 import { countdown, fmtNum, relDay, timeOf } from '@/lib/date';
-import { calcPoints } from '@/lib/scoring';
+import { fmtScore, matchState } from '@/lib/matchState';
 import { useSport } from '@/sport/SportContext';
 import { useMyLeagues } from '@/sport/useMyLeagues';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -74,22 +73,23 @@ export default function Tippen() {
     );
   };
 
-  const pts = match.result && match.myTip ? calcPoints(match.myTip, match.result) : null;
+  const st = matchState(match, now);
+  const started = st.phase === 'live' || st.phase === 'finished'; // ab Anpfiff: Spielstand statt Tipp-Eingabe
   return (
     <View style={{ flex: 1 }}>
       <Screen
         header={<AppHeader height={74} back hidePill hideAvatar center={`${leagueName(match.leagueId)} · ${match.round}`} right={<HeaderShare match={match} />} />}
         fixedFooter={
           <View>
-            {locked ? (
-              <Button label={pts !== null ? `Dein Tipp ${match.myTip!.home}:${match.myTip!.away} · +${pts} Pkt` : 'Tippschluss erreicht'} variant="disabled" />
+            {started ? null : locked ? (
+              <Button label="Tippschluss erreicht" variant="disabled" />
             ) : isSaved ? (
               <Button testID="tip-saved" label={`Tipp gespeichert · ${tip.home}:${tip.away}`} variant="soft" icon={<CheckIcon color={accent.main} size={18} />} onPress={save} />
             ) : (
               <Button testID="tip-save" label="Tipp speichern" onPress={save} />
             )}
             {next ? (
-              <Pressable onPress={() => router.replace(`/spiel/${next.id}`)} accessibilityRole="link" style={{ alignItems: 'center', marginTop: 14 }}>
+              <Pressable onPress={() => router.replace(`/spiel/${next.id}`)} accessibilityRole="link" style={{ alignItems: 'center', marginTop: started ? 0 : 14 }}>
                 <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 14, color: isSaved ? accent.main : c.textMuted }} numberOfLines={1}>
                   {isSaved ? 'Weiter zu' : 'Nächstes:'} {label(next.home)} – {label(next.away)} ›
                 </Text>
@@ -104,19 +104,45 @@ export default function Tippen() {
             <Text style={{ fontFamily: fonts.bodySemi, fontSize: 12.5, color: c.textMuted, textAlign: 'center' }} numberOfLines={1}>
               {relDay(match.kickoff.slice(0, 10), MOCK_TODAY)} · {match.venue}
             </Text>
-            <Text style={{ fontFamily: fonts.display, fontSize: 42, lineHeight: 48, color: c.text }}>{timeOf(match.kickoff)}</Text>
-            {!locked ? (
+            {started ? (
+              <>
+                <Text testID="match-status" style={{ fontFamily: fonts.bodyHeavy, fontSize: 12.5, letterSpacing: 1, color: st.phase === 'live' ? c.down : c.textMuted, marginTop: 2 }}>
+                  {st.phase === 'live' ? `● LIVE ${st.statusText}` : 'BEENDET'}
+                </Text>
+                <Text testID="match-score" style={{ fontFamily: fonts.display, fontSize: 42, lineHeight: 48, color: c.text }}>
+                  {fmtScore(st.score)}
+                  {st.decisionLabel ? <Text style={{ fontSize: 18, color: c.textMuted }}> {st.decisionLabel}</Text> : null}
+                </Text>
+                {hockey && st.decisionLabel && st.scoring ? (
+                  <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 12, color: c.textMuted }}>nach 60 Min {fmtScore(st.scoring)}</Text>
+                ) : null}
+              </>
+            ) : (
+              <Text style={{ fontFamily: fonts.display, fontSize: 42, lineHeight: 48, color: c.text }}>{timeOf(match.kickoff)}</Text>
+            )}
+            {started ? null : !locked ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: c.warningBg, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 }}>
                 <ClockIcon color={c.warning} size={13} />
                 <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 13, color: c.warning, fontVariant: ['tabular-nums'] }}>noch {countdown(match.kickoff, now)}</Text>
               </View>
-            ) : match.result ? (
-              <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 12, color: c.textMuted, textAlign: 'center' }}>{resultLine(match)}</Text>
             ) : null}
           </View>
           <TeamCol team={match.away} />
         </Card>
 
+        {started ? (
+          <Card testID="my-tip-line" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, paddingVertical: 13 }}>
+            <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 15, color: st.tip ? c.text : c.textMuted }}>
+              {st.tip ? `Dein Tipp ${fmtScore(st.tip)}` : 'Kein Tipp abgegeben'}
+            </Text>
+            {st.points !== null ? (
+              <View style={{ backgroundColor: st.points ? accent.soft : c.cardMuted, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}>
+                <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 13, color: st.points ? accent.main : c.textMuted }}>{st.points ? `+${st.points}` : '0'} Pkt</Text>
+              </View>
+            ) : null}
+          </Card>
+        ) : (
+          <>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 18 }}>
           <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 18, color: c.text }}>Dein Tipp</Text>
           <Text style={{ fontFamily: fonts.bodySemi, fontSize: 12.5, color: c.textMuted }}>{hockey ? 'Wertung nach 60 Min · Tippschluss bei Anpfiff' : 'Tippschluss bei Anpfiff'}</Text>
@@ -139,6 +165,9 @@ export default function Tippen() {
             );
           })}
         </View>
+
+          </>
+        )}
 
         <Community match={match} />
       </Screen>

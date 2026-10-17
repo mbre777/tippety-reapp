@@ -25,11 +25,20 @@ export const matches: Match[] = [
   { id: 'at2', sport: 'football', leagueId: 'abl', round: '10. Runde', kickoff: at(D1, '17:00'), venue: 'Red Bull Arena', home: T.rbs, away: T.stu, status: 'scheduled', community: c(46, 26, 28, 1540) },
   { id: 'at3', sport: 'football', leagueId: 'abl', round: '10. Runde', kickoff: at(D0, '20:30'), venue: 'Generali Arena', home: T.fak, away: T.smf, status: 'scheduled', community: c(58, 24, 18, 820) },
   { id: 'at4', sport: 'football', leagueId: 'abl', round: '10. Runde', kickoff: at(D1, '14:30'), venue: 'Tivoli Stadion', home: T.at_wsg, away: T.at_htb, status: 'scheduled', community: c(38, 29, 33, 610) },
+  // Beendet (gestern) für Punkte-Varianten: +3, +2, 0, kein Tipp
+  { id: 'atf1', sport: 'football', leagueId: 'abl', round: '9. Runde', kickoff: at(DM, '17:00'), venue: 'Merkur Arena', home: T.stu, away: T.at_ask, status: 'finished', result: s(3, 1), myTip: s(2, 0), community: c(50, 25, 25, 900) },
+  { id: 'atf2', sport: 'football', leagueId: 'abl', round: '9. Runde', kickoff: at(DM, '17:00'), venue: 'Josko Arena', home: T.at_svr, away: T.at_wac, status: 'finished', result: s(1, 0), myTip: s(3, 1), community: c(40, 30, 30, 700) },
+  { id: 'atf3', sport: 'football', leagueId: 'abl', round: '9. Runde', kickoff: at(DM, '19:30'), venue: 'Reichshofstadion', home: T.at_alu, away: T.at_gak, status: 'finished', result: s(0, 2), myTip: s(1, 0), community: c(45, 28, 27, 640) },
+  { id: 'atf4', sport: 'football', leagueId: 'abl', round: '9. Runde', kickoff: at(DM, '19:30'), venue: 'Cashpoint Arena', home: T.at_alt, away: T.at_htb, status: 'finished', result: s(2, 2), community: c(35, 33, 32, 520) },
+  // Live (heute): mit und ohne Tipp
+  { id: 'atl1', sport: 'football', leagueId: 'abl', round: '10. Runde', kickoff: at(D0, '20:30'), venue: 'Josko Arena', home: T.at_svr, away: T.fak, status: 'live', result: s(2, 1), finalResult: s(2, 1), myTip: s(2, 0), community: c(30, 30, 40, 760) },
+  { id: 'atl2', sport: 'football', leagueId: 'abl', round: '10. Runde', kickoff: at(D0, '20:30'), venue: 'Lavanttal-Arena', home: T.at_wac, away: T.at_alu, status: 'live', result: s(0, 0), finalResult: s(0, 0), community: c(48, 30, 22, 410) },
   // ---------- CH Super League ----------
   { id: 'ch1', sport: 'football', leagueId: 'chsl', round: '11. Runde', kickoff: at(D0, '20:30'), venue: 'Letzigrund', home: T.fcz, away: T.gc, status: 'scheduled', community: c(52, 25, 23, 960) },
   { id: 'ch2', sport: 'football', leagueId: 'chsl', round: '11. Runde', kickoff: at(D1, '16:30'), venue: 'Wankdorf', home: T.yb, away: T.fcbs, status: 'scheduled', community: c(47, 27, 26, 1320), topMatch: true },
   // ---------- National League, Runde 14 ----------
   { id: 'nl1', sport: 'hockey', leagueId: 'nl', round: 'Runde 14', kickoff: at(D0, '19:45'), venue: 'Bossard Arena', home: T.evz, away: T.fgo, status: 'finished', result: s(3, 3), finalResult: s(4, 3), decision: 'shootout', myTip: s(2, 2), community: c(44, 20, 36, 1310) },
+  { id: 'nl6', sport: 'hockey', leagueId: 'nl', round: 'Runde 13', kickoff: at(DM, '19:45'), venue: 'Vaudoise Aréna', home: T.lhc, away: T.hcd, status: 'finished', result: s(2, 2), finalResult: s(2, 3), decision: 'overtime', myTip: s(1, 3), community: c(38, 22, 40, 980) },
   { id: 'nl2', sport: 'hockey', leagueId: 'nl', round: 'Runde 14', kickoff: at(D0, '19:45'), venue: 'Patinoire des Vernets', home: T.gsh, away: T.lhc, status: 'scheduled', community: c(45, 22, 33, 1210) },
   { id: 'nl3', sport: 'hockey', leagueId: 'nl', round: 'Runde 14', kickoff: at(D0, '19:45'), venue: 'Tissot Arena', home: T.bie, away: T.ehk, status: 'scheduled', myTip: s(2, 4), community: c(40, 21, 39, 1080) },
   { id: 'nl4', sport: 'hockey', leagueId: 'nl', round: 'Runde 14', kickoff: at(D0, '20:00'), venue: 'Swiss Life Arena', home: T.zsc, away: T.scb, status: 'scheduled', community: c(44, 17, 39, 2390), topMatch: true },
