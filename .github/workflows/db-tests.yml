@@ -30,7 +30,10 @@ jobs:
           echo "cron.database_name = '${DB}'"          | sudo tee -a /etc/postgresql/17/ci/postgresql.conf
           sudo pg_ctlcluster 17 ci start
       - name: Migrationen + pgTAP
-        run: sudo -u postgres env PGCLUSTER=$PGCLUSTER DB=$DB bash scripts/test_local.sh
+        # Checkout liegt unter /home/runner (fuer postgres nicht lesbar) -> Kopie nach /tmp
+        run: |
+          cp -r "$GITHUB_WORKSPACE" /tmp/repo && sudo chown -R postgres /tmp/repo
+          sudo -u postgres env PGCLUSTER=$PGCLUSTER DB=$DB bash /tmp/repo/scripts/test_local.sh
   deno-check:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
