@@ -4,7 +4,7 @@ import { leagueName, type Match } from '@/data';
 import { calcPoints } from '@/lib/scoring';
 import { useTheme } from '@/theme/ThemeProvider';
 import { Card } from './Card';
-import { Crest } from './Crest';
+import { TeamBadge } from './TeamBadge';
 import { ScoreBox } from './ScoreBox';
 
 const DEC = { regular: '', overtime: ' n.V.', shootout: ' n.P.' } as const;
@@ -39,7 +39,7 @@ export function MatchCard({ match }: { match: Match }) {
           <View style={{ flex: 1, gap: 10, paddingRight: 8 }}>
             {[match.home, match.away].map((t) => (
               <View key={t.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <Crest team={t} size={24} />
+                <TeamBadge team={t} size={24} />
                 <Text style={{ flex: 1, fontFamily: fonts.display, fontSize: 20, color: c.text }} numberOfLines={1}>{t.shortName ?? t.name}</Text>
               </View>
             ))}

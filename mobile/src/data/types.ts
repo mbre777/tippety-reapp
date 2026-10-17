@@ -7,8 +7,12 @@ export type Team = {
   shortName?: string;
   /** Kürzel fürs Platzhalter-Wappen, max. 3–4 Zeichen */
   short: string;
-  /** Vereinsfarben: [Grundfarbe, Schriftfarbe] */
+  /** Vereinsfarben: [Primär = Badge-Hintergrund, Schriftfarbe] */
   colors: [string, string];
+  /** Sekundärfarbe (optional, dezenter Badge-Rand bei sehr hellem/dunklem Primär) */
+  secondary?: string;
+  /** true = keine Vereinsfarben bekannt → neutrales Grau */
+  noColors?: boolean;
 };
 
 export type League = {

@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { Crest } from '@/components/Crest';
+import { TeamBadge } from '@/components/TeamBadge';
 import { CheckIcon, ClockIcon, InfoIcon, MinusIcon, PlusIcon, ShareIcon } from '@/components/Icons';
 import { resultLine } from '@/components/MatchCard';
 import { Screen } from '@/components/Screen';
@@ -194,11 +194,10 @@ function Community({ match }: { match: Match }) {
 }
 
 function TeamCol({ team }: { team: Team }) {
-  const { c, fonts } = useTheme();
+  // Detail: Badge + voller Vereinsname (lange Namen → Kurzform, adjustsFontSizeToFit)
   return (
     <View style={{ flex: 1, alignItems: 'center', minWidth: 0 }}>
-      <Crest team={team} size={54} />
-      <Text style={{ fontFamily: fonts.display, fontSize: 20, lineHeight: 23, color: c.text, textAlign: 'center', marginTop: 8 }} numberOfLines={2}>{label(team)}</Text>
+      <TeamBadge team={team} size={54} showName />
     </View>
   );
 }

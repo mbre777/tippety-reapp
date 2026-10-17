@@ -23,6 +23,8 @@ export const matches: Match[] = [
   // ---------- AT Bundesliga ----------
   { id: 'at1', sport: 'football', leagueId: 'abl', round: '10. Runde', kickoff: at(D0, '17:00'), venue: 'Allianz Stadion', home: T.rap, away: T.fak, status: 'scheduled', myTip: s(1, 1), community: c(49, 28, 23, 1876), topMatch: true },
   { id: 'at2', sport: 'football', leagueId: 'abl', round: '10. Runde', kickoff: at(D1, '17:00'), venue: 'Red Bull Arena', home: T.rbs, away: T.stu, status: 'scheduled', community: c(46, 26, 28, 1540) },
+  { id: 'at3', sport: 'football', leagueId: 'abl', round: '10. Runde', kickoff: at(D0, '20:30'), venue: 'Generali Arena', home: T.fak, away: T.smf, status: 'scheduled', community: c(58, 24, 18, 820) },
+  { id: 'at4', sport: 'football', leagueId: 'abl', round: '10. Runde', kickoff: at(D1, '14:30'), venue: 'Tivoli Stadion', home: T.at_wsg, away: T.at_htb, status: 'scheduled', community: c(38, 29, 33, 610) },
   // ---------- CH Super League ----------
   { id: 'ch1', sport: 'football', leagueId: 'chsl', round: '11. Runde', kickoff: at(D0, '20:30'), venue: 'Letzigrund', home: T.fcz, away: T.gc, status: 'scheduled', community: c(52, 25, 23, 960) },
   { id: 'ch2', sport: 'football', leagueId: 'chsl', round: '11. Runde', kickoff: at(D1, '16:30'), venue: 'Wankdorf', home: T.yb, away: T.fcbs, status: 'scheduled', community: c(47, 27, 26, 1320), topMatch: true },
