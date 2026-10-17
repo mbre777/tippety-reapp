@@ -50,6 +50,7 @@
     "owner": "tippety-app",
     "updates": {
       "url": "https://u.expo.dev/5818aa52-1b43-4e14-a175-00ddce2732fa"
-    }
+    },
+    "runtimeVersion": "exposdk:57.0.0"
   }
 }
