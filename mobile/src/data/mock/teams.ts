@@ -3,6 +3,7 @@ import type { League, Team } from '../types';
 const L = (id: string, sport: League['sport'], name: string, country: string, flag: string, code: string, color: string, available: boolean): League => ({ id, sport, name, country, flag, code, color, available });
 
 /** Reihenfolge = Anzeige-Reihenfolge in der Liga-Auswahl. */
+const RT: Record<string, number> = { bl: 34, abl: 32, chsl: 38, nl: 52 }; // = leagues.rounds_total (NHL: null)
 export const leagues: League[] = [
   L('bl', 'football', 'Bundesliga', 'Deutschland', '🇩🇪', 'BL', '#D20515', true),
   L('abl', 'football', 'AT Bundesliga', 'Österreich', '🇦🇹', 'AT', '#E8202A', true),
@@ -13,7 +14,7 @@ export const leagues: League[] = [
   L('laliga', 'football', 'La Liga', 'Spanien', '🇪🇸', 'LL', '#F0525B', false),
   L('nl', 'hockey', 'National League', 'Schweiz', '🇨🇭', 'NL', '#13284A', true),
   L('nhl', 'hockey', 'NHL', 'USA / Kanada', '🇺🇸', 'NHL', '#111111', true),
-];
+].map((l) => (RT[l.id] ? { ...l, roundsTotal: RT[l.id] } : l));
 
 const t = (id: string, name: string, short: string, bg: string, fg = '#FFFFFF', shortName?: string, secondary?: string): Team => ({ id, name, short, colors: [bg, fg], shortName, secondary });
 /** Team ohne bekannte Vereinsfarben (Fallback-Badge) */

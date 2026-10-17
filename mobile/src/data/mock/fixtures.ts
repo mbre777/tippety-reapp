@@ -12,6 +12,7 @@ const D0 = '2026-10-17';
 const D1 = '2026-10-18';
 const DM = '2026-10-16';
 
+export const withMatchday = (ms: Match[]): Match[] => ms.map((m) => (m.sport === 'football' && m.matchday == null && /\d+/.test(m.round) ? { ...m, matchday: Number(m.round.match(/\d+/)![0]) } : m));
 export const matches: Match[] = [
   // ---------- Bundesliga, 7. Spieltag ----------
   { id: 'bl1', sport: 'football', leagueId: 'bl', round: '7. Spieltag', kickoff: at(D0, '15:30'), venue: 'Red Bull Arena', home: T.rbl, away: T.sge, status: 'scheduled', myTip: s(1, 1), community: c(51, 26, 23, 2890) },
@@ -39,6 +40,11 @@ export const matches: Match[] = [
   // ---------- National League, Runde 14 ----------
   { id: 'nl1', sport: 'hockey', leagueId: 'nl', round: 'Runde 14', kickoff: at(D0, '19:45'), venue: 'Bossard Arena', home: T.evz, away: T.fgo, status: 'finished', result: s(3, 3), finalResult: s(4, 3), decision: 'shootout', myTip: s(2, 2), community: c(44, 20, 36, 1310) },
   { id: 'nl6', sport: 'hockey', leagueId: 'nl', round: 'Runde 13', kickoff: at(DM, '19:45'), venue: 'Vaudoise Aréna', home: T.lhc, away: T.hcd, status: 'finished', result: s(2, 2), finalResult: s(2, 3), decision: 'overtime', myTip: s(1, 3), community: c(38, 22, 40, 980) },
+  // weitere Wochen (NL/NHL ohne matchday → Wochen-Chips)
+  { id: 'nl7', sport: 'hockey', leagueId: 'nl', round: 'Runde 11', kickoff: '2026-10-09T19:45:00+02:00', venue: 'Bossard Arena', home: T.evz, away: T.scb, status: 'finished', result: s(3, 1), finalResult: s(3, 1), decision: 'regular', myTip: s(3, 1), community: c(50, 20, 30, 900) },
+  { id: 'nl8', sport: 'hockey', leagueId: 'nl', round: 'Runde 16', kickoff: '2026-10-23T19:45:00+02:00', venue: 'Swiss Life Arena', home: T.zsc, away: T.hcd, status: 'scheduled', community: c(45, 20, 35, 300) },
+  { id: 'nhl7', sport: 'hockey', leagueId: 'nhl', round: 'Regular Season', kickoff: '2026-10-10T01:00:00+02:00', venue: 'Rogers Place', home: T.edm, away: T.cgy, status: 'finished', result: s(4, 2), finalResult: s(4, 2), decision: 'regular', myTip: s(3, 2), community: c(55, 15, 30, 1200) },
+  { id: 'nhl8', sport: 'hockey', leagueId: 'nhl', round: 'Regular Season', kickoff: '2026-10-24T01:00:00+02:00', venue: 'Scotiabank Saddledome', home: T.cgy, away: T.edm, status: 'scheduled', community: c(40, 18, 42, 500) },
   { id: 'nl2', sport: 'hockey', leagueId: 'nl', round: 'Runde 14', kickoff: at(D0, '19:45'), venue: 'Patinoire des Vernets', home: T.gsh, away: T.lhc, status: 'scheduled', community: c(45, 22, 33, 1210) },
   { id: 'nl3', sport: 'hockey', leagueId: 'nl', round: 'Runde 14', kickoff: at(D0, '19:45'), venue: 'Tissot Arena', home: T.bie, away: T.ehk, status: 'scheduled', myTip: s(2, 4), community: c(40, 21, 39, 1080) },
   { id: 'nl4', sport: 'hockey', leagueId: 'nl', round: 'Runde 14', kickoff: at(D0, '20:00'), venue: 'Swiss Life Arena', home: T.zsc, away: T.scb, status: 'scheduled', community: c(44, 17, 39, 2390), topMatch: true },

@@ -47,11 +47,13 @@ let catalogLoaded = false;
 async function ensureCatalog() {
   if (catalogLoaded) return;
   const sb = supabase();
-  const rows = await tryFeature<LeagueRow[]>('leagues_0005', () => sb.from('leagues').select('id,sport,name,country,active,short_name,color,flag_url,country_code').order('name'), async () => {
+  const L5 = 'id,sport,name,country,active,short_name,color,flag_url,country_code';
+  // rounds_total (PR #23) per Feature-Detection → sonst 0005-Spalten → sonst Basis
+  const rows = await tryFeature<LeagueRow[]>('leagues_rounds_total', () => sb.from('leagues').select(`${L5},rounds_total`).order('name'), () => tryFeature<LeagueRow[]>('leagues_0005', () => sb.from('leagues').select(L5).order('name'), async () => {
     const { data, error } = await sb.from('leagues').select('id,sport,name,country,active').order('name');
     if (error) throw error;
     return (data ?? []) as LeagueRow[];
-  });
+  }));
   setLeagueCatalogFromRows(rows ?? []);
   catalogLoaded = true;
 }

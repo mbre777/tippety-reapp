@@ -39,22 +39,30 @@ export function longDates(from?: string, to?: string): string {
   return a.getMonth() === b.getMonth() ? `${a.getDate()}.–${b.getDate()}. ${MO[a.getMonth()]}` : `${a.getDate()}. ${MO[a.getMonth()]} – ${b.getDate()}. ${MO[b.getMonth()]}`;
 }
 
-export function roundNum(m: Match): number | undefined {
-  if (m.matchday != null) return m.matchday;
-  const n = m.round.match(/\d+/);
-  return n ? Number(n[0]) : undefined;
+/** Spieltag nur aus matches.matchday (DE/AT/CH befüllt; NL/NHL null → Wochen-Chips) */
+export const roundNum = (m: Match): number | undefined => m.matchday ?? undefined;
+
+/** ISO-Kalenderwoche (Montag–Sonntag) */
+export function isoWeek(iso: string): { year: number; week: number } {
+  const d = new Date(iso);
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y = t.getUTCFullYear();
+  return { year: y, week: Math.ceil(((t.getTime() - Date.UTC(y, 0, 1)) / 86400000 + 1) / 7) };
 }
 
 /**
- * Gruppiert Liga-Spiele in Runden. `totalRounds` (Fußball 34, Eishockey 52) ergänzt leere Chips für
- * Runden ohne Spiele im Datenbestand. Ohne Rundennummer (z. B. NHL „Regular Season“) → je Spieltag (Datum).
+ * Gruppiert Liga-Spiele in Runden. Mit matchday: Chips 1…`totalRounds` (leagues.rounds_total, sonst
+ * max(matchday)), leere Chips für Runden ohne Spiele. Ohne matchday (NL/NHL) → Chips je Kalenderwoche „KW 42“.
  */
 export function groupRounds(matches: Match[], sport: Sport, now = Date.now(), totalRounds?: number): RoundInfo[] {
   const byKey = new Map<string, RoundInfo>();
   const numbered = matches.some((m) => roundNum(m) != null);
   for (const m of [...matches].sort((a, b) => a.kickoff.localeCompare(b.kickoff))) {
     const num = numbered ? roundNum(m) : undefined;
-    const key = num != null ? String(num) : m.kickoff.slice(0, 10);
+    const w = num == null ? isoWeek(m.kickoff) : undefined;
+    const key = num != null ? String(num) : `${w!.year}-W${String(w!.week).padStart(2, '0')}`;
     let r = byKey.get(key);
     if (!r) {
       r = { key, num, title: '', chipLabel: '', chipValue: '', matches: [], total: 0, tipped: 0, open: 0, points: 0, phase: 'future' };
@@ -62,7 +70,9 @@ export function groupRounds(matches: Match[], sport: Sport, now = Date.now(), to
     }
     r.matches.push(m);
   }
-  if (numbered && totalRounds) for (let i = 1; i <= totalRounds; i++) if (!byKey.has(String(i))) byKey.set(String(i), { key: String(i), num: i, title: '', chipLabel: '', chipValue: '', matches: [], total: 0, tipped: 0, open: 0, points: 0, phase: 'future' });
+  const maxNum = Math.max(0, ...matches.map((m) => roundNum(m) ?? 0));
+  const upTo = numbered ? Math.max(totalRounds ?? 0, maxNum) : 0;
+  if (upTo) for (let i = 1; i <= upTo; i++) if (!byKey.has(String(i))) byKey.set(String(i), { key: String(i), num: i, title: '', chipLabel: '', chipValue: '', matches: [], total: 0, tipped: 0, open: 0, points: 0, phase: 'future' });
   const list = [...byKey.values()].sort((a, b) => (a.num != null && b.num != null ? a.num - b.num : a.key.localeCompare(b.key)));
   for (const r of list) {
     r.total = r.matches.length;
@@ -81,10 +91,10 @@ export function groupRounds(matches: Match[], sport: Sport, now = Date.now(), to
       r.chipLabel = sport === 'football' ? 'ST' : 'RUNDE';
       r.chipValue = String(r.num);
     } else {
-      const a = d(r.from!);
-      r.title = longDates(r.from);
-      r.chipLabel = WD[a.getDay()].toUpperCase();
-      r.chipValue = String(a.getDate());
+      const wk = Number(r.key.slice(-2));
+      r.title = `KW ${wk}`;
+      r.chipLabel = 'KW';
+      r.chipValue = String(wk);
     }
   }
   // aktuell = erste nicht abgeschlossene Runde mit Spielen; sonst letzte mit Spielen

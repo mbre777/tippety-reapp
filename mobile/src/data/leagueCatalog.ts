@@ -11,7 +11,7 @@ export const leagueCatalog: League[] = [...mockLeagues];
 const META: Record<string, Pick<League, 'code' | 'color' | 'flag'>> = Object.fromEntries(
   mockLeagues.map((l) => [l.name.toLowerCase(), { code: l.code, color: l.color, flag: l.flag }]),
 );
-export type LeagueRow = { id: string; sport: League['sport']; name: string; country: string | null; active: boolean; short_name?: string | null; color?: string | null; flag_url?: string | null; country_code?: string | null };
+export type LeagueRow = { id: string; sport: League['sport']; name: string; country: string | null; active: boolean; short_name?: string | null; color?: string | null; flag_url?: string | null; country_code?: string | null; rounds_total?: number | null };
 
 /** ISO-3166-Alpha-2 → Flaggen-Emoji (z. B. "AT" → 🇦🇹) */
 export const flagEmoji = (cc?: string | null) =>
@@ -28,6 +28,7 @@ export function setLeagueCatalogFromRows(rows: LeagueRow[]) {
       color: r.color && HEX.test(r.color) ? r.color : m?.color ?? '#5D6E86',
       flag: flagEmoji(r.country_code) || m?.flag || '',
       flagUrl: r.flag_url ?? undefined,
+      roundsTotal: r.rounds_total ?? undefined,
     };
   });
   leagueCatalog.splice(0, leagueCatalog.length, ...ls);

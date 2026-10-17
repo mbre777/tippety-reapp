@@ -156,7 +156,13 @@ export const supabaseRepository: TippetyRepository = {
     return withMyTips(await many((b) => b.eq('sport', sport).in('league_id', ids).gte('kickoff_at', from).lte('kickoff_at', to).order('kickoff_at')));
   },
   async getLeagueMatches(leagueId) {
-    const rows = await many((b) => b.eq('league_id', leagueId).order('kickoff_at').limit(2000));
+    // PostgREST max_rows = 1000 → in 1000er-Blöcken paginieren bis leer (NHL: 1344 Spiele)
+    const rows: MatchRow[] = [];
+    for (let from = 0; ; from += 1000) {
+      const page = await many((b) => b.eq('league_id', leagueId).order('kickoff_at').order('id').range(from, from + 999));
+      rows.push(...page);
+      if (page.length < 1000) break;
+    }
     if (!rows.length) return [];
     // Tipps per Join auf die Liga statt .in(match_id, …) – bei NHL > 1000 Spiele wäre die URL zu lang
     const me = await uid();
