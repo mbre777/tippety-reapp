@@ -1,0 +1,7 @@
+{
+  "compilerOptions": { "strict": true },
+  "tasks": {
+    "dry-run": "deno run --allow-net --allow-env --allow-write ../../../scripts/import.ts --dry-run",
+    "sql": "deno run --allow-net --allow-env --allow-write ../../../scripts/import.ts --sql"
+  }
+}

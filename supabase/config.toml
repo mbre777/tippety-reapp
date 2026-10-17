@@ -44,3 +44,6 @@ enabled = false
 client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
 skip_nonce_check = true
+
+[functions.import]
+verify_jwt = false  # Schutz ueber Header x-import-secret (IMPORT_SECRET)
