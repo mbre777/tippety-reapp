@@ -7,7 +7,9 @@ ein EAS Update auf Branch/Channel **preview**.
 1. Gültiger Expo Access Token (expo.dev → Account settings → Access tokens), als GitHub-Secret `EXPO_TOKEN`.
 2. `cd mobile && npx eas-cli init` (schreibt `extra.eas.projectId` + `owner` in app.json) und
    `npx expo install expo-updates` + `updates.url = https://u.expo.dev/5818aa52-1b43-4e14-a175-00ddce2732fa` (macht `eas update:configure`).
-   **Kein `runtimeVersion` setzen**, solange wir Expo Go nutzen: Updates mit runtimeVersion lädt Expo Go nicht.
+   `runtimeVersion` steht fest auf **`exposdk:57.0.0`** – genau diese Runtime fragt Expo Go SDK 57 an. Ohne Angabe
+   veröffentlicht eas-cli mit `1.0.0`, das Expo Go nicht findet. Beim SDK-Upgrade mit anheben; für Store-Builds (Stufe 2)
+   auf `{"policy":"fingerprint"}` umstellen. Channel `preview` existiert (eas channel:create preview).
 3. GitHub-Secret `EXPO_PUBLIC_SUPABASE_ANON_KEY`, Repo-Variables `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_BACKEND=supabase`
    (Settings → Secrets and variables → Actions).
 

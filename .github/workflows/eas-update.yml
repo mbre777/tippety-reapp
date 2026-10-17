@@ -22,5 +22,5 @@ jobs:
       - run: npm i -g npm@11   # Lockfile wurde mit npm 11 erzeugt; npm 10 meldet sonst 'Missing: react-native-worklets'
       - run: npm ci
       - run: npx tsc --noEmit
-      # Branch "preview" (= Channel preview). Kein runtimeVersion in app.json → Update läuft in Expo Go (SDK 57).
-      - run: eas update --auto --branch preview --non-interactive --message "${{ github.event.head_commit.message || 'manual' }}"
+      # Channel/Branch "preview". runtimeVersion "exposdk:57.0.0" in app.json = die Runtime, die Expo Go (SDK 57) anfragt.
+      - run: eas update --channel preview --environment preview --non-interactive --message "${{ github.event.head_commit.message || 'manual' }}"
