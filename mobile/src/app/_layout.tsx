@@ -49,7 +49,7 @@ function Shell() {
     if (sport === 'hockey' && !hasHockey && hasFootball) setSport('football');
     if (sport === 'football' && !hasFootball && hasHockey) setSport('hockey');
   }, [sport, hasFootball, hasHockey, setSport]);
-  const lightBar = sport === 'football' && segments[0] !== 'login';
+  const lightBar = sport === 'football' || segments[0] === 'login'; // Login: Uhrzeit liegt auf dem Rasen
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <StatusBar style={lightBar ? 'light' : 'dark'} />
