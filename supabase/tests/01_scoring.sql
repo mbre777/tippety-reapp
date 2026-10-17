@@ -45,7 +45,7 @@ select is((select points from public.tips where user_id = '00000000-0000-0000-00
 
 -- Idempotenz
 select is(public.score_match('30000000-0000-0000-0000-000000000001'), 0, 'score_match erneut: keine Aenderung');
-select is((select sum(points)::int from public.tips), 10, 'Summe unveraendert nach erneutem Lauf');
+select is((select sum(points)::int from public.tips where match_id in ('30000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000002')), 10, 'Summe unveraendert nach erneutem Lauf');
 
 -- Korrektur: Ergebnis 2:1 -> 3:2
 update public.matches set home_final = 3, away_final = 2, home_regular = 3, away_regular = 2

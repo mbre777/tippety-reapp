@@ -86,10 +86,15 @@ with n as materialized (
   select id, sport, name, short_name, logo_url, color from n returning id
 )
 insert into public.external_ids (entity_type, entity_id, provider, external_id) select 'team', id, provider, external_id from n;
-update public.teams t set name = s.name, short_name = coalesce(s.short_name, t.short_name),
-  logo_url = coalesce(s.logo_url, t.logo_url), color = coalesce(s.color, t.color)
+-- Manuell gepflegte Werte (short_name_locked / colors_locked) haben Vorrang; primary/secondary/text_color setzt der Import nie.
+update public.teams t set name = s.name,
+  short_name = case when t.short_name_locked then t.short_name else coalesce(s.short_name, t.short_name) end,
+  logo_url = coalesce(s.logo_url, t.logo_url),
+  color = case when t.colors_locked then t.color else coalesce(s.color, t.color) end
 from stg_teams s join public.external_ids e on e.provider = s.provider and e.entity_type = 'team' and e.external_id = s.external_id
-where t.id = e.entity_id and (t.name, t.short_name, t.logo_url, t.color) is distinct from (s.name, coalesce(s.short_name, t.short_name), coalesce(s.logo_url, t.logo_url), coalesce(s.color, t.color));
+where t.id = e.entity_id and (t.name, t.short_name, t.logo_url, t.color) is distinct from
+  (s.name, case when t.short_name_locked then t.short_name else coalesce(s.short_name, t.short_name) end,
+   coalesce(s.logo_url, t.logo_url), case when t.colors_locked then t.color else coalesce(s.color, t.color) end);
 
 -- Spiele (IDs fuer Liga/Saison/Teams ueber external_ids aufloesen)
 create temp table stg_m2 on commit drop as

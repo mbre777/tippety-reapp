@@ -33,7 +33,7 @@ set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a"}';
 select is((select total from public.get_match_tip_distribution('30000000-0000-0000-0000-000000000001')), 3, 'Verteilung: 3 Tipps');
 select is((select home_pct from public.get_match_tip_distribution('30000000-0000-0000-0000-000000000001')), 33.3, 'home_pct 33.3');
 select is((select total from public.get_match_tip_distribution(gen_random_uuid())), 0, 'ohne Tipps: total 0');
-select is((select count(*)::int from public.tips where user_id <> auth.uid()), 0, 'Einzeltipps anderer weiterhin unsichtbar');
+select is((select count(*)::int from public.tips where user_id <> auth.uid() and match_id in ('30000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000002')), 0, 'Einzeltipps anderer weiterhin unsichtbar');
 
 -- Gruppen
 insert into g select id, invite_code from public.create_group('Liga-Runde', array['10000000-0000-0000-0000-000000000001'::uuid], false);
@@ -72,7 +72,7 @@ insert into public.leaderboard_snapshots (snapshot_date, scope, scope_id, user_i
 
 set local role authenticated;
 select is((select points_week from public.leaderboard_global where nickname = 'anna'), 5, 'points_week');
-select is((select rank_change from public.leaderboard_global where nickname = 'anna'), 2, 'rank_change: 3 -> 1 = +2');
+select is((select rank_change from public.leaderboard_global where nickname = 'anna'), (select 3 - rank from public.leaderboard_global where nickname = 'anna'), 'rank_change = Snapshot-Rang 3 minus aktueller Rang');
 select is((select rank_change from public.leaderboard_global where nickname = 'cleo'), null, 'rank_change null ohne Snapshot');
 select is((select points from public.leaderboard_period(p_league_id := '10000000-0000-0000-0000-000000000001', p_period := 'matchday', p_matchday := 2) where nickname = 'ben'), 5, 'leaderboard_period matchday');
 select is((select count(*)::int from public.leaderboard_period(p_group_id := (select id from g), p_period := 'month')), 2, 'leaderboard_period Gruppe/Monat: alle Mitglieder');

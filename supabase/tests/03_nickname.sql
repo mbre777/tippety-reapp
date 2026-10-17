@@ -2,7 +2,7 @@ begin;
 select plan(13);
 
 insert into auth.users (id) values ('00000000-0000-0000-0000-00000000000a'), ('00000000-0000-0000-0000-00000000000b');
-select is((select count(*)::int from public.profiles), 2, 'Profil bei Signup angelegt');
+select is((select count(*)::int from public.profiles where id in ('00000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000b')), 2, 'Profil bei Signup angelegt');
 
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a"}';
