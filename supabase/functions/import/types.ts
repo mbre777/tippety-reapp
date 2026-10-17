@@ -88,6 +88,11 @@ export interface ProviderAdapter {
   fetchLeagues(cfg: LeagueConfig): Promise<LeagueFetch>;
   fetchTeams(cfg: LeagueConfig, season: NormSeason | null): Promise<NormTeam[]>;
   fetchMatches(cfg: LeagueConfig, season: NormSeason | null): Promise<NormMatch[]>;
+  /**
+   * Ergebnis-/Status-Update fuer bekannte Spiele (externe IDs) im Zeitfenster [from, to].
+   * Darf nur die noetigsten Calls machen; liefert nur Spiele aus externalIds.
+   */
+  fetchResults(cfg: LeagueConfig, externalIds: string[], from: Date, to: Date): Promise<NormMatch[]>;
   /** Anzahl HTTP-Calls seit Erzeugung (fuer sync_runs) */
   apiCalls(): number;
   /** Warnungen (z.B. unbekannter Status) */

@@ -74,14 +74,32 @@ export class NhlAdapter implements ProviderAdapter {
     return this.scheduleCache;
   }
 
+  async fetchResults(cfg: LeagueConfig, externalIds: string[], from: Date, to: Date): Promise<NormMatch[]> {
+    const want = new Set(externalIds);
+    // /score/{datum} ist nach US-Spieltag organisiert -> Vortag des Fensterbeginns mitnehmen
+    const days = new Set<string>();
+    for (let t = from.getTime() - 86400e3; t <= to.getTime(); t += 86400e3) days.add(new Date(t).toISOString().slice(0, 10));
+    days.add(to.toISOString().slice(0, 10));
+    const games = new Map<number, NhlGame>();
+    for (const d of days) {
+      const r = await this.http.json<{ games?: NhlGame[] }>(`${BASE}/score/${d}`);
+      for (const g of r.games ?? []) if (want.has(String(g.id))) games.set(g.id, g);
+    }
+    return this.mapGames(cfg, null, [...games.values()], null);
+  }
+
   async fetchMatches(cfg: LeagueConfig, season: NormSeason | null): Promise<NormMatch[]> {
     const teams = await this.fetchTeams(cfg);
+    const games = await this.schedule(teams.map((t) => t.shortName!));
+    return this.mapGames(cfg, season?.externalId ?? null, games, new Set(teams.map((t) => t.externalId)));
+  }
+
+  private mapGames(cfg: LeagueConfig, seasonExt: string | null, games: NhlGame[], known: Set<string> | null): NormMatch[] {
     const types = new Set((cfg.options?.gameTypes ?? '2').split(',').map(Number));
-    const known = new Set(teams.map((t) => t.externalId));
     const out: NormMatch[] = [];
-    for (const g of await this.schedule(teams.map((t) => t.shortName!))) {
+    for (const g of games) {
       if (!types.has(g.gameType)) continue;
-      if (!known.has(String(g.homeTeam.id)) || !known.has(String(g.awayTeam.id))) {
+      if (known && (!known.has(String(g.homeTeam.id)) || !known.has(String(g.awayTeam.id)))) {
         this.warn.push(`NHL: Spiel ${g.id} mit unbekanntem Team (${g.homeTeam.abbrev}-${g.awayTeam.abbrev}) uebersprungen`);
         continue;
       }
@@ -97,7 +115,7 @@ export class NhlAdapter implements ProviderAdapter {
       const tied = status === 'finished' && (lpt === 'OT' || lpt === 'SO') && hf !== null && af !== null;
       out.push({
         provider: this.provider, externalId: String(g.id), sport: cfg.sport, leagueExternalId: cfg.externalLeagueId,
-        seasonExternalId: season?.externalId ?? null,
+        seasonExternalId: seasonExt,
         homeTeamExternalId: String(g.homeTeam.id), awayTeamExternalId: String(g.awayTeam.id),
         kickoffAt: new Date(g.startTimeUTC).toISOString(), status,
         round: g.gameType === 3 ? 'Playoffs' : null, matchday: null, venue: g.venue?.default ?? null,

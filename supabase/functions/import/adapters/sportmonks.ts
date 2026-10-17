@@ -89,37 +89,47 @@ export class SportmonksAdapter implements ProviderAdapter {
 
   async fetchMatches(cfg: LeagueConfig, season: NormSeason | null): Promise<NormMatch[]> {
     if (!season) return [];
+    return (await this.fixtures(season)).flatMap((f) => this.map(cfg, f));
+  }
+
+  async fetchResults(cfg: LeagueConfig, externalIds: string[]): Promise<NormMatch[]> {
     const out: NormMatch[] = [];
-    for (const f of await this.fixtures(season)) {
-      if (String(f.league_id) !== cfg.externalLeagueId) continue;
-      const home = f.participants?.find((p) => p.meta.location === 'home');
-      const away = f.participants?.find((p) => p.meta.location === 'away');
-      if (!home || !away) { this.warn.push(`${cfg.key}: Fixture ${f.id} ohne Heim/Gast`); continue; }
-      const raw = f.state?.developer_name ?? 'UNKNOWN';
-      let status = STATUS[raw];
-      if (!status) { this.warn.push(`${cfg.key}: unbekannter Status ${raw} (Fixture ${f.id})`); status = 'scheduled'; }
-      const goals = (desc: string, side: 'home' | 'away') =>
-        f.scores?.find((s) => s.description === desc && s.score.participant === side)?.score.goals ?? null;
-      const hasResult = status === 'finished' || status === 'live';
-      const homeFinal = hasResult ? goals('CURRENT', 'home') : null;
-      const awayFinal = hasResult ? goals('CURRENT', 'away') : null;
-      // Ligaspiele: kein ET; 2ND_HALF ist bei Sportmonks kumulativ (Stand nach 90')
-      const homeReg = hasResult ? (goals('2ND_HALF', 'home') ?? homeFinal) : null;
-      const awayReg = hasResult ? (goals('2ND_HALF', 'away') ?? awayFinal) : null;
-      const kickoff = f.starting_at_timestamp
-        ? new Date(f.starting_at_timestamp * 1000).toISOString()
-        : f.starting_at ? new Date(f.starting_at.replace(' ', 'T') + 'Z').toISOString() : null;
-      if (!kickoff) { this.warn.push(`${cfg.key}: Fixture ${f.id} ohne Anstoss`); continue; }
-      const md = f.round?.name && /^\d+$/.test(f.round.name) ? Number(f.round.name) : null;
-      out.push({
-        provider: this.provider, externalId: String(f.id), sport: cfg.sport, leagueExternalId: cfg.externalLeagueId,
-        seasonExternalId: season.externalId, homeTeamExternalId: String(home.id), awayTeamExternalId: String(away.id),
-        kickoffAt: kickoff, status, round: f.round?.name ?? null, matchday: md, venue: f.venue?.name ?? null,
-        homeRegular: homeReg, awayRegular: awayReg, homeFinal, awayFinal,
-        decidedBy: status === 'finished' ? (raw === 'AET' ? 'overtime' : raw === 'FT_PEN' ? 'shootout' : 'regular') : null,
-        rawStatus: raw,
-      });
+    for (let i = 0; i < externalIds.length; i += 50) {
+      const r = await this.http.json<{ data?: SmFixture[] }>(this.url(`/fixtures/multi/${externalIds.slice(i, i + 50).join(',')}`,
+        { include: 'participants;scores;state;venue;round' }));
+      for (const f of r.data ?? []) out.push(...this.map(cfg, f));
     }
     return out;
+  }
+
+  private map(cfg: LeagueConfig, f: SmFixture): NormMatch[] {
+    if (String(f.league_id) !== cfg.externalLeagueId) return [];
+    const home = f.participants?.find((p) => p.meta.location === 'home');
+    const away = f.participants?.find((p) => p.meta.location === 'away');
+    if (!home || !away) { this.warn.push(`${cfg.key}: Fixture ${f.id} ohne Heim/Gast`); return []; }
+    const raw = f.state?.developer_name ?? 'UNKNOWN';
+    let status = STATUS[raw];
+    if (!status) { this.warn.push(`${cfg.key}: unbekannter Status ${raw} (Fixture ${f.id})`); status = 'scheduled'; }
+    const goals = (desc: string, side: 'home' | 'away') =>
+      f.scores?.find((s) => s.description === desc && s.score.participant === side)?.score.goals ?? null;
+    const hasResult = status === 'finished' || status === 'live';
+    const homeFinal = hasResult ? goals('CURRENT', 'home') : null;
+    const awayFinal = hasResult ? goals('CURRENT', 'away') : null;
+    // Ligaspiele: kein ET; 2ND_HALF ist bei Sportmonks kumulativ (Stand nach 90')
+    const homeReg = hasResult ? (goals('2ND_HALF', 'home') ?? homeFinal) : null;
+    const awayReg = hasResult ? (goals('2ND_HALF', 'away') ?? awayFinal) : null;
+    const kickoff = f.starting_at_timestamp
+      ? new Date(f.starting_at_timestamp * 1000).toISOString()
+      : f.starting_at ? new Date(f.starting_at.replace(' ', 'T') + 'Z').toISOString() : null;
+    if (!kickoff) { this.warn.push(`${cfg.key}: Fixture ${f.id} ohne Anstoss`); return []; }
+    const md = f.round?.name && /^\d+$/.test(f.round.name) ? Number(f.round.name) : null;
+    return [{
+      provider: this.provider, externalId: String(f.id), sport: cfg.sport, leagueExternalId: cfg.externalLeagueId,
+      seasonExternalId: String(f.season_id), homeTeamExternalId: String(home.id), awayTeamExternalId: String(away.id),
+      kickoffAt: kickoff, status, round: f.round?.name ?? null, matchday: md, venue: f.venue?.name ?? null,
+      homeRegular: homeReg, awayRegular: awayReg, homeFinal, awayFinal,
+      decidedBy: status === 'finished' ? (raw === 'AET' ? 'overtime' : raw === 'FT_PEN' ? 'shootout' : 'regular') : null,
+      rawStatus: raw,
+    }];
   }
 }

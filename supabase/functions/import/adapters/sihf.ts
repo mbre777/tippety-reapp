@@ -39,17 +39,24 @@ export class SihfAdapter implements ProviderAdapter {
     });
   }
 
-  private async rows(cfg: LeagueConfig): Promise<SihfRow[]> {
-    if (this.rowsCache) return this.rowsCache;
+  private async rows(cfg: LeagueConfig, range?: { from: Date; to: Date }): Promise<SihfRow[]> {
+    if (this.rowsCache && !range) return this.rowsCache;
     const y = seasonStartYear(this.now);
+    const fmt = (d: Date) => {
+      const p = new Intl.DateTimeFormat('de-CH', { timeZone: 'Europe/Zurich', day: '2-digit', month: '2-digit', year: 'numeric' }).formatToParts(d);
+      const g = (t: string) => p.find((x) => x.type === t)!.value;
+      return `${g('day')}.${g('month')}.${g('year')}`;
+    };
+    const dates = range ? `${fmt(range.from)}-${fmt(range.to)}` : `01.08.${y}-30.06.${y + 1}`;
     const phase = cfg.options?.phase ?? 'all';
     const q = new URLSearchParams({
       alias: 'results', searchQuery: `${cfg.externalLeagueId}//${cfg.externalLeagueId}`,
-      filterQuery: `${this.seasonAlias()}/${phase}/01.08.${y}-30.06.${y + 1}`,
+      filterQuery: `${this.seasonAlias()}/${phase}/${dates}`,
       filterBy: 'Season,Phase,Date', orderBy: 'gameLocalTimestamp', orderByDescending: 'false',
       take: '2000', language: 'de',
     });
     const r = await this.http.json<{ data: SihfRow[] }>(`${BASE}?${q}`);
+    if (range) return r.data ?? [];
     this.rowsCache = r.data ?? [];
     return this.rowsCache;
   }
@@ -77,10 +84,20 @@ export class SihfAdapter implements ProviderAdapter {
     return 'scheduled';
   }
 
+  async fetchResults(cfg: LeagueConfig, externalIds: string[], from: Date, to: Date): Promise<NormMatch[]> {
+    const want = new Set(externalIds);
+    const rows = await this.rows(cfg, { from, to });
+    return this.mapRows(cfg, null, rows).filter((m) => want.has(m.externalId));
+  }
+
   async fetchMatches(cfg: LeagueConfig, season: NormSeason | null): Promise<NormMatch[]> {
+    return this.mapRows(cfg, season?.externalId ?? null, await this.rows(cfg));
+  }
+
+  private mapRows(cfg: LeagueConfig, seasonExt: string | null, rows: SihfRow[]): NormMatch[] {
     const num = (v: string | undefined) => (v === undefined || v === '-' || v === '' ? null : Number(v));
     const out: NormMatch[] = [];
-    for (const r of await this.rows(cfg)) {
+    for (const r of rows) {
       const st = r[8];
       const status = this.status(st);
       const hasResult = status === 'finished' || status === 'live';
@@ -90,7 +107,7 @@ export class SihfAdapter implements ProviderAdapter {
       const dec = r[7];
       out.push({
         provider: this.provider, externalId: r[9].gameId, sport: cfg.sport, leagueExternalId: cfg.externalLeagueId,
-        seasonExternalId: season?.externalId ?? null,
+        seasonExternalId: seasonExt,
         homeTeamExternalId: String(r[3].id), awayTeamExternalId: String(r[4].id),
         kickoffAt: new Date(st.startDateTime).toISOString(), status, round: null, matchday: null, venue: null,
         homeRegular: hasResult ? sum(ph) : null, awayRegular: hasResult ? sum(pa) : null,
