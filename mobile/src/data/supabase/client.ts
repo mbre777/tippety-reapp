@@ -1,3 +1,4 @@
+import '@/lib/cryptoPolyfill'; // vor supabase-js: PKCE mit S256 statt plain
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { AppState, Platform } from 'react-native';

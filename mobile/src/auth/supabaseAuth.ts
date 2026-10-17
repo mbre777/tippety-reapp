@@ -95,12 +95,15 @@ export const supabaseAuth: AuthService = {
   },
   async signIn(provider) {
     const sb = supabase();
+    // Expo Go: exp://<host>/--/auth-callback · Dev/Store-Build: tippety://auth-callback · Web: <origin>/auth-callback
     const redirectTo = Linking.createURL('auth-callback');
+    console.log('[auth] OAuth redirectTo =', redirectTo); // muss in Supabase → Redirect URLs erlaubt sein, sonst Fallback auf Site URL
     const { data, error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo, skipBrowserRedirect: Platform.OS !== 'web' } });
     if (error) throw error;
     if (Platform.OS !== 'web' && data.url) {
       const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
       if (res.type !== 'success') throw new Error('Anmeldung abgebrochen');
+      if (!res.url.startsWith(redirectTo)) console.warn('[auth] Redirect kam auf', res.url.split('?')[0], '– redirectTo nicht in Supabase-Allowlist?');
       const params = parseParams(res.url);
       if (params.error) throw new Error(params.error_description ?? params.error);
       const code = params.code;
