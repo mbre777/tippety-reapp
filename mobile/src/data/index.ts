@@ -4,6 +4,7 @@ import type { TippetyRepository } from './repository';
 import { leagues } from './mock/teams';
 
 export * from './types';
+export { useTipsVersion } from './events';
 export { MOCK_TODAY } from './mock/fixtures';
 
 /** Einziger Austauschpunkt: später z. B. `apiRepository` aus ./api */

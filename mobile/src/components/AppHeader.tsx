@@ -8,7 +8,8 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { myStatsSync } from './headerData';
 import { Logo } from './Logo';
 import { FieldBackground } from './FieldBackground';
-import { ChevronLeft, FlameIcon } from './Icons';
+import { ChevronLeft } from './Icons';
+import { OpenTipsPill } from './OpenTipsPill';
 
 export const SHEET_OVERLAP = 28;
 
@@ -41,12 +42,7 @@ export function AppHeader({ children, height = 128, back }: Props) {
             <Logo color={accent.headerText} accent={sport === 'football' ? '#7BE0A2' : accent.main} />
           </View>
           <View style={[styles.row, { gap: 8 }]}>
-            <View style={[styles.pill, { backgroundColor: c.card }]}>
-              <FlameIcon />
-              <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 14, color: c.text }}>
-                {stats.streak.done}/{stats.streak.of} Tage
-              </Text>
-            </View>
+            <OpenTipsPill />
             <View style={[styles.avatar, { backgroundColor: c.card }]}>
               <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 14, color: accent.main }}>{stats.initials}</Text>
             </View>

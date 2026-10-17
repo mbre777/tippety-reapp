@@ -62,6 +62,6 @@ export const groups: Group[] = [
 ];
 
 export const myStats: Record<Sport, UserStats> = {
-  football: { userId: 'me', name: 'Markus B.', initials: 'MB', points: 1284, hits: 38, tips: 52, rank: 128, streak: { done: 5, of: 7 } },
-  hockey: { userId: 'me', name: 'Markus B.', initials: 'MB', points: 812, hits: 21, tips: 34, rank: 42, streak: { done: 5, of: 7 } },
+  football: { userId: 'me', name: 'Markus B.', initials: 'MB', points: 1284, hits: 38, tips: 52, rank: 128, streak: { done: 5, of: 7 }, favoriteLeagueId: 'bl' },
+  hockey: { userId: 'me', name: 'Markus B.', initials: 'MB', points: 812, hits: 21, tips: 34, rank: 42, streak: { done: 5, of: 7 }, favoriteLeagueId: 'nl' },
 };

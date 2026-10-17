@@ -1,4 +1,4 @@
-import type { Group, League, LeaderboardEntry, LeaderboardPeriod, Match, Score, Sport, UserStats } from './types';
+import type { OpenRoundTips, Group, League, LeaderboardEntry, LeaderboardPeriod, Match, Score, Sport, UserStats } from './types';
 
 /**
  * Datenzugriff der App. Aktuell mit Mock-Daten implementiert (mockRepository),
@@ -18,5 +18,7 @@ export interface TippetyRepository {
   getLeaderboard(sport: Sport, period: LeaderboardPeriod): Promise<LeaderboardEntry[]>;
   getGroups(sport: Sport): Promise<Group[]>;
   getMyStats(sport: Sport): Promise<UserStats>;
+  /** Offene Tipps im nächsten Spieltag der Lieblingsliga */
+  getOpenTipsNextRound(sport: Sport): Promise<OpenRoundTips | undefined>;
   saveTip(matchId: string, tip: Score): Promise<Match>;
 }

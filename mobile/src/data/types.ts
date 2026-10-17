@@ -72,4 +72,13 @@ export type UserStats = {
   tips: number;
   rank: number;
   streak: { done: number; of: number };
+  /** Lieblingsliga je Sportart (für die Header-Pill) */
+  favoriteLeagueId: string;
+};
+
+export type OpenRoundTips = {
+  leagueId: string;
+  leagueName: string;
+  round: string;
+  open: Match[];
 };
