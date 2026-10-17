@@ -9,6 +9,8 @@ import type { Group, League, LeaderboardEntry, LeaderboardPeriod, Match, NewGrou
 export interface TippetyRepository {
   getLeagues(): Promise<League[]>;
   getMatchesByDay(sport: Sport, day: string, leagueIds: string[]): Promise<Match[]>;
+  /** Alle Spiele einer Liga (aktuelle Saison) inkl. eigener Tipps – Basis für Spieltag-Chips (lib/rounds.ts) */
+  getLeagueMatches(leagueId: string): Promise<Match[]>;
   getMatch(id: string): Promise<Match | undefined>;
   /** Kommende Topspiele der Sportart, nach Anstoß sortiert */
   getTopMatches(sport: Sport, leagueIds: string[], limit?: number): Promise<Match[]>;

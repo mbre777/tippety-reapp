@@ -16,6 +16,7 @@ const nick = () => getSession().profile?.nickname ?? 'du';
 export const mockRepository: TippetyRepository = {
   getLeagues: () => delay(leagues),
   getMatchesByDay: (sport, day, ids) => delay(store.filter((m) => m.sport === sport && ids.includes(m.leagueId) && m.kickoff.startsWith(day)).sort(byKick)),
+  getLeagueMatches: (leagueId) => delay(store.filter((m) => m.leagueId === leagueId).sort(byKick)),
   getMatch: (id) => delay(store.find((m) => m.id === id)),
   getTopMatches: (sport, ids, limit = 5) => delay(store.filter((m) => m.sport === sport && ids.includes(m.leagueId) && m.topMatch && m.status === 'scheduled').sort(byKick).slice(0, limit)),
   getNextOpenMatch: (afterId, ids) => {
