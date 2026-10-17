@@ -155,6 +155,15 @@ export const supabaseRepository: TippetyRepository = {
     const to = new Date(`${day}T23:59:59.999`).toISOString();
     return withMyTips(await many((b) => b.eq('sport', sport).in('league_id', ids).gte('kickoff_at', from).lte('kickoff_at', to).order('kickoff_at')));
   },
+  async getLeagueMatches(leagueId) {
+    const rows = await many((b) => b.eq('league_id', leagueId).order('kickoff_at').limit(2000));
+    if (!rows.length) return [];
+    // Tipps per Join auf die Liga statt .in(match_id, …) – bei NHL > 1000 Spiele wäre die URL zu lang
+    const me = await uid();
+    const tips = ok(await supabase().from('tips').select('match_id,home,away,matches!inner(league_id)').eq('user_id', me).eq('matches.league_id', leagueId)) as { match_id: string; home: number; away: number }[];
+    const by = new Map(tips.map((t) => [t.match_id, { home: t.home, away: t.away }]));
+    return rows.map((r) => toMatch(r, by.get(r.id)));
+  },
   async getMatch(id) {
     const row = await one((b) => b.eq('id', id).maybeSingle());
     return row ? withCommunity((await withMyTips([row]))[0]) : undefined;
