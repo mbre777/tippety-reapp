@@ -98,10 +98,17 @@ export const supabaseAuth: AuthService = {
     // Expo Go: exp://<host>/--/auth-callback · Dev/Store-Build: tippety://auth-callback · Web: <origin>/auth-callback
     const redirectTo = Linking.createURL('auth-callback');
     console.log('[auth] OAuth redirectTo =', redirectTo); // muss in Supabase → Redirect URLs erlaubt sein, sonst Fallback auf Site URL
+    // Supabase Auth lehnt redirect_to mit IP-Host ab (außer Loopback) → stiller Fallback auf Site URL (tippety://),
+    // den Expo Go nicht öffnen kann („Adresse ungültig“). supabase/auth#2039. Lösung: `npm run start:tunnel` (Host *.exp.direct).
+    if (/^exp:\/\/(\d{1,3}\.){3}\d{1,3}(:\d+)?\//.test(redirectTo)) {
+      console.warn('[auth] redirectTo hat einen IP-Host – Supabase verwirft das und leitet auf die Site URL um. Expo mit `npm run start:tunnel` starten.');
+    }
     const { data, error } = await sb.auth.signInWithOAuth({ provider, options: { redirectTo, skipBrowserRedirect: Platform.OS !== 'web' } });
     if (error) throw error;
     if (Platform.OS !== 'web' && data.url) {
+      console.log('[auth] authorize-URL =', data.url); // nur provider, redirect_to, code_challenge – keine Secrets
       const res = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      console.log('[auth] openAuthSessionAsync →', res.type, res.type === 'success' ? res.url.replace(/([?&#]code=)[^&#]+/, '$1***') : '');
       if (res.type !== 'success') throw new Error('Anmeldung abgebrochen');
       if (!res.url.startsWith(redirectTo)) console.warn('[auth] Redirect kam auf', res.url.split('?')[0], '– redirectTo nicht in Supabase-Allowlist?');
       const params = parseParams(res.url);
