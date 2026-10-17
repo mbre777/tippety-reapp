@@ -85,3 +85,14 @@ Nach Änderungen an `.env` den Dev-Server mit `--clear` neu starten (Werte werde
    - `redirect_uri_mismatch` (Google) → Callback-URL in Google Cloud prüfen.
    - Leere Ligen-Liste nach Login → Tabelle `leagues` ist leer (Import/Seed nötig).
 7. Fallback ohne Backend: `EXPO_PUBLIC_BACKEND=mock` in `.env`, `npx expo start --tunnel --clear`.
+
+## Fehlerbild „Adresse ungültig“ in Expo Go (Safari nach Google-Zustimmung)
+Die App sendet `redirect_to=exp://<host>/--/auth-callback` (Log: `[auth] OAuth redirectTo = …`).
+`/auth/v1/authorize` nimmt jeden Wert an und leitet mit 302 zu Google weiter (per curl geprüft).
+Ob die URL erlaubt ist, prüft Supabase erst im Callback. Steht sie nicht in der Allowlist, leitet Supabase
+still auf die **Site URL** (`tippety://auth-callback`) um, und Expo Go kann dieses Schema nicht öffnen.
+
+Supabase → Authentication → URL Configuration → Redirect URLs:
+- `exp://**`  (Expo Go; Host/IP ändert sich je nach LAN/Tunnel, z. B. `exp://192.168.x.x:8081/--/auth-callback` oder `exp://xyz-anonymous-8081.exp.direct/--/auth-callback`)
+- `tippety://auth-callback`  (Dev/Store-Build)
+- `http://localhost:8081/auth-callback`  (Web lokal)
