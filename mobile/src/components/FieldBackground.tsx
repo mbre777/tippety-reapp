@@ -25,12 +25,12 @@ export function FieldBackground({ sport, width, height }: { sport: Sport; width:
           <Path d={`M88 ${height * 0.62} a30 30 0 0 1 0 60`} />
           <Path d={`M${width - 88} ${height * 0.62} a30 30 0 0 0 0 60`} />
         </G>
-        <Circle cx={cx} cy={height * 0.82} r={3.2} fill={line} />
+        <Circle cx={cx} cy={height * 0.82} r={2.6} fill={line} />
       </Svg>
     );
   }
-  const red = 'rgba(214,60,72,0.45)';
-  const blue = 'rgba(31,100,200,0.32)';
+  const red = 'rgba(214,60,72,0.14)';
+  const blue = 'rgba(31,100,200,0.10)';
   const cx = width / 2;
   return (
     <Svg width={width} height={height} style={StyleSheet.absoluteFill}>

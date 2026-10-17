@@ -15,7 +15,7 @@ export default function Gruppen() {
   const groups = useQuery(() => repo.getGroups(sport), [sport]).data ?? [];
 
   return (
-    <Screen header={<AppHeader height={150}><HeaderTitle overline={`${groups.length} Gruppen`} title="Gruppen" /></AppHeader>}>
+    <Screen header={<AppHeader height={112}><HeaderTitle overline={`${groups.length} Gruppen`} title="Gruppen" /></AppHeader>}>
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <Pressable style={{ flex: 1, backgroundColor: accent.main, borderRadius: 16, paddingVertical: 14, alignItems: 'center' }} accessibilityRole="button">
           <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 15, color: accent.onAccent }}>+ Gruppe erstellen</Text>

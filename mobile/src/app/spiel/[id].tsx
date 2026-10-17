@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import { Platform, Pressable, Text, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { AppHeader, HeaderTitle } from '@/components/AppHeader';
 import { Card } from '@/components/Card';
 import { Crest } from '@/components/Crest';
@@ -18,11 +19,15 @@ const QUICK: Record<'football' | 'hockey', Score[]> = {
 
 export default function Spieldetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { setSport } = useSport();
+  const { sport, setSport } = useSport();
   const { c, accent, fonts } = useTheme();
   const { data: match, setData } = useQuery(() => repo.getMatch(id), [id]);
   const [draft, setTip] = useState<Score | null>(null);
   const [saved, setSaved] = useState(false);
+  const [doneCount, setDoneCount] = useState<number | null>(null);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const next = useQuery(() => repo.getNextOpenMatch(sport, id), [sport, id, saved]).data;
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -42,9 +47,24 @@ export default function Spieldetail() {
     setTip({ ...tip, [side]: Math.max(0, Math.min(15, tip[side] + d)) });
   };
   const save = async () => {
+    const wasTipped = !!match.myTip;
     const m = await repo.saveTip(match.id, tip);
     setData(m);
     setSaved(true);
+    if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    // Bestehenden Tipp geändert → auf dem Screen bleiben.
+    if (wasTipped) return;
+    timers.current.push(
+      setTimeout(async () => {
+        const n = await repo.getNextOpenMatch(match.sport, match.id);
+        if (n) {
+          router.replace(`/spiel/${n.id}`);
+          return;
+        }
+        setDoneCount(await repo.countTipsOnDay(match.sport, match.kickoff.slice(0, 10)));
+        timers.current.push(setTimeout(() => router.replace('/spiele'), 2400));
+      }, 600),
+    );
   };
 
   const shares = [
@@ -57,12 +77,36 @@ export default function Spieldetail() {
     <Screen
       header={<AppHeader height={150} back><HeaderTitle overline={`${leagueName(match.leagueId)} · ${match.round}`} title="Spieldetail" /></AppHeader>}
       footer={
-        <Pressable onPress={save} disabled={locked} accessibilityRole="button"
-          style={{ height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', backgroundColor: locked ? c.dashed : accent.main }}>
-          <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 17, color: accent.onAccent }}>
-            {locked ? 'Tippschluss erreicht' : saved ? '✓ Tipp gespeichert' : 'Tipp speichern'}
-          </Text>
-        </Pressable>
+        doneCount !== null ? (
+          <Card accentTop style={{ alignItems: 'center', paddingVertical: 20 }}>
+            <Text style={{ fontFamily: fonts.display, fontSize: 26, color: c.text }}>Alle Spiele getippt 🎉</Text>
+            <Text style={{ fontFamily: fonts.bodySemi, fontSize: 14, color: c.textMuted, marginTop: 4 }}>
+              {doneCount} {doneCount === 1 ? 'Tipp' : 'Tipps'} heute · zurück zur Liste …
+            </Text>
+            <Pressable onPress={() => router.replace('/spiele')} style={{ marginTop: 12, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 999, backgroundColor: accent.main }}>
+              <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 14, color: accent.onAccent }}>Zur Liste</Text>
+            </Pressable>
+          </Card>
+        ) : (
+          <View>
+            <Pressable onPress={save} disabled={locked} accessibilityRole="button"
+              style={{ height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', backgroundColor: locked ? c.dashed : accent.main }}>
+              <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 17, color: accent.onAccent }}>
+                {locked ? 'Tippschluss erreicht' : saved ? '✓ Gespeichert' : 'Tipp speichern'}
+              </Text>
+            </Pressable>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingHorizontal: 6 }}>
+              <Pressable onPress={() => router.replace('/spiele')} accessibilityRole="link">
+                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, color: c.textMuted }}>‹ Zurück zur Liste</Text>
+              </Pressable>
+              {!match.myTip && next ? (
+                <Text style={{ flexShrink: 1, marginLeft: 12, fontFamily: fonts.bodyBold, fontSize: 13, color: accent.main, textAlign: 'right' }} numberOfLines={1}>
+                  Nächstes: {next.home.short} – {next.away.short} ›
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        )
       }
     >
       <Card accentTop style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 18, paddingHorizontal: 10 }}>

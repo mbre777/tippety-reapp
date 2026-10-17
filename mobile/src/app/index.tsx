@@ -1,4 +1,5 @@
-import { Pressable, Text, View } from 'react-native';
+import { useState } from 'react';
+import { FlatList, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { AppHeader } from '@/components/AppHeader';
 import { Card } from '@/components/Card';
@@ -7,7 +8,7 @@ import { DayStrip } from '@/components/DayStrip';
 import { ChevronRight, TrophyIcon, UsersIcon } from '@/components/Icons';
 import { Screen } from '@/components/Screen';
 import { Txt } from '@/components/Txt';
-import { MOCK_TODAY, leagueName, repo, useQuery, type Team } from '@/data';
+import { MOCK_TODAY, leagueName, repo, useQuery, type Match, type Team } from '@/data';
 import { fmtNum, shortDate, timeOf } from '@/lib/date';
 import { useSport } from '@/sport/SportContext';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -16,7 +17,7 @@ export default function Home() {
   const { sport } = useSport();
   const { c, accent, fonts } = useTheme();
   const stats = useQuery(() => repo.getMyStats(sport), [sport]).data;
-  const top = useQuery(() => repo.getTopMatch(sport), [sport]).data;
+  const tops = useQuery(() => repo.getTopMatches(sport, 5), [sport]).data ?? [];
   const groups = useQuery(() => repo.getGroups(sport), [sport]).data ?? [];
 
   const tiles = stats
@@ -45,31 +46,7 @@ export default function Home() {
         ))}
       </View>
 
-      {top ? (
-        <Pressable onPress={() => router.push(`/spiel/${top.id}`)} accessibilityRole="button" style={{ marginTop: 16 }}>
-          <Card accentTop style={{ paddingVertical: 18 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View style={{ backgroundColor: accent.soft, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999 }}>
-                <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 13, color: accent.main }}>Topspiel</Text>
-              </View>
-              <Text style={{ fontFamily: fonts.bodySemi, fontSize: 13, color: c.textMuted }}>
-                {shortDate(top.kickoff)} · {timeOf(top.kickoff)}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14 }}>
-              <TeamCol team={top.home} />
-              <View style={{ width: 110, alignItems: 'center' }}>
-                <Txt variant="overline" numberOfLines={1}>{leagueName(top.leagueId)}</Txt>
-                <Text style={{ fontFamily: fonts.display, fontSize: 36, color: c.text }}>
-                  {top.myTip ? `${top.myTip.home} : ${top.myTip.away}` : '– : –'}
-                </Text>
-                <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 12, color: accent.main }}>{top.myTip ? 'Dein Tipp' : 'Jetzt tippen'}</Text>
-              </View>
-              <TeamCol team={top.away} />
-            </View>
-          </Card>
-        </Pressable>
-      ) : null}
+      <TopCarousel matches={tops} />
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 26, marginBottom: 12 }}>
         <Txt variant="section">Challenges & Gruppen</Txt>
@@ -108,5 +85,69 @@ function TeamCol({ team }: { team: Team }) {
         {team.name}
       </Text>
     </View>
+  );
+}
+
+const GAP = 10;
+
+/** Topspiel-Rotator: horizontal, Snap pro Card, nächste Card angeschnitten, Punkt-Indikator. */
+function TopCarousel({ matches }: { matches: Match[] }) {
+  const { c, accent } = useTheme();
+  const { width } = useWindowDimensions();
+  const [index, setIndex] = useState(0);
+  const cardW = width - 36 - 26;
+  if (matches.length === 0) return null;
+  return (
+    <View style={{ marginTop: 16 }}>
+      <FlatList
+        data={matches}
+        keyExtractor={(m) => m.id}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={cardW + GAP}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        disableIntervalMomentum
+        style={{ marginHorizontal: -18 }}
+        contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 6, gap: GAP }}
+        onScroll={(e) => setIndex(Math.max(0, Math.min(matches.length - 1, Math.round(e.nativeEvent.contentOffset.x / (cardW + GAP)))))}
+        scrollEventThrottle={32}
+        renderItem={({ item }) => <TopCard match={item} width={cardW} />}
+      />
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 8 }} accessibilityLabel={`Topspiel ${index + 1} von ${matches.length}`}>
+        {matches.map((m, i) => (
+          <View key={m.id} style={{ height: 6, width: i === index ? 18 : 6, borderRadius: 3, backgroundColor: i === index ? accent.main : c.dashed }} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function TopCard({ match: top, width }: { match: Match; width: number }) {
+  const { c, accent, fonts } = useTheme();
+  return (
+    <Pressable onPress={() => router.push(`/spiel/${top.id}`)} accessibilityRole="button" accessibilityLabel={`Topspiel ${top.home.name} gegen ${top.away.name}`} style={{ width }}>
+      <Card accentTop style={{ paddingVertical: 18, height: 210 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View style={{ backgroundColor: accent.soft, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999 }}>
+            <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 13, color: accent.main }}>Topspiel</Text>
+          </View>
+          <Text style={{ fontFamily: fonts.bodySemi, fontSize: 13, color: c.textMuted }}>
+            {shortDate(top.kickoff)} · {timeOf(top.kickoff)}
+          </Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 14 }}>
+          <TeamCol team={top.home} />
+          <View style={{ width: 116, alignItems: 'center' }}>
+            <Txt variant="overline" numberOfLines={1} adjustsFontSizeToFit style={{ letterSpacing: 0.8 }}>{leagueName(top.leagueId)}</Txt>
+            <Text style={{ fontFamily: fonts.display, fontSize: 36, color: c.text }}>
+              {top.myTip ? `${top.myTip.home} : ${top.myTip.away}` : '– : –'}
+            </Text>
+            <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 12, color: accent.main }}>{top.myTip ? 'Dein Tipp' : 'Jetzt tippen'}</Text>
+          </View>
+          <TeamCol team={top.away} />
+        </View>
+      </Card>
+    </Pressable>
   );
 }

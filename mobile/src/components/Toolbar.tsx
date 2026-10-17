@@ -3,7 +3,8 @@ import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSport } from '@/sport/SportContext';
 import { useTheme } from '@/theme/ThemeProvider';
-import { BallIcon, HockeyIcon, HomeIcon, TrophyIcon, UsersIcon } from './Icons';
+import { HomeIcon, TrophyIcon, UsersIcon } from './Icons';
+import { SportGlyph } from './SportIcons';
 
 export const TOOLBAR_SPACE = 104;
 
@@ -21,7 +22,6 @@ export function Toolbar() {
   const { sport, toggleSport } = useSport();
   const { c, accent, fonts, shadow } = useTheme();
   const insets = useSafeAreaInsets();
-  const SportIcon = sport === 'football' ? BallIcon : HockeyIcon;
   const active = pathname.startsWith('/spiel') ? '/spiele' : pathname;
 
   const icon = (href: Tab['href'], color: string) => {
@@ -29,7 +29,7 @@ export function Toolbar() {
       case '/':
         return <HomeIcon color={color} />;
       case '/spiele':
-        return <SportIcon color={color} />;
+        return <View style={{ opacity: color === accent.main ? 1 : 0.5 }}><SportGlyph sport={sport} size={24} /></View>;
       case '/rangliste':
         return <TrophyIcon color={color} />;
       default:
@@ -66,7 +66,7 @@ export function Toolbar() {
         onPress={toggleSport}
         style={[styles.sport, shadow.card, { backgroundColor: accent.main }]}
       >
-        <SportIcon size={30} color={accent.onAccent} strokeWidth={1.9} />
+        <SportGlyph sport={sport} size={40} />
       </Pressable>
     </View>
   );

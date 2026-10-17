@@ -67,8 +67,8 @@ export const lightAccents: Record<Sport, Accent> = {
     softer: '#F0F8F3',
     onAccent: '#FFFFFF',
     fieldBase: '#1B8A47',
-    fieldStripe: '#1F9650',
-    fieldLine: 'rgba(255,255,255,0.55)',
+    fieldStripe: '#1C8D49',
+    fieldLine: 'rgba(255,255,255,0.16)',
     headerText: '#FFFFFF',
     headerTextMuted: 'rgba(255,255,255,0.7)',
   },
@@ -80,13 +80,14 @@ export const lightAccents: Record<Sport, Accent> = {
     onAccent: '#FFFFFF',
     fieldBase: '#EAF1F9',
     fieldStripe: '#EAF1F9',
-    fieldLine: 'rgba(31,100,200,0.35)',
+    fieldLine: 'rgba(31,100,200,0.15)',
     headerText: '#13284A',
     headerTextMuted: '#5D6E86',
   },
 };
 
 export const fonts = {
+  logo: 'Barlow_800ExtraBold_Italic',
   display: 'BarlowCondensed_700Bold',
   displaySemi: 'BarlowCondensed_600SemiBold',
   body: 'Nunito_500Medium',

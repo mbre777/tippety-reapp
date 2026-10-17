@@ -9,6 +9,12 @@ export interface TippetyRepository {
   getMatchesByDay(sport: Sport, day: string): Promise<Match[]>;
   getMatch(id: string): Promise<Match | undefined>;
   getTopMatch(sport: Sport): Promise<Match | undefined>;
+  /** Kommende Topspiele der Sportart, nach Anstoß sortiert */
+  getTopMatches(sport: Sport, limit?: number): Promise<Match[]>;
+  /** Nächstes noch nicht getipptes, tippbares Spiel nach `afterMatchId` (nach Anstoß) */
+  getNextOpenMatch(sport: Sport, afterMatchId: string): Promise<Match | undefined>;
+  /** Anzahl getippter Spiele an einem Tag */
+  countTipsOnDay(sport: Sport, day: string): Promise<number>;
   getLeaderboard(sport: Sport, period: LeaderboardPeriod): Promise<LeaderboardEntry[]>;
   getGroups(sport: Sport): Promise<Group[]>;
   getMyStats(sport: Sport): Promise<UserStats>;

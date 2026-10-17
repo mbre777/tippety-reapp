@@ -26,7 +26,7 @@ export default function Rangliste() {
   const me = list.find((e) => e.isMe);
 
   return (
-    <Screen header={<AppHeader height={150}><HeaderTitle overline="Saison 26/27" title="Rangliste" /></AppHeader>}>
+    <Screen header={<AppHeader height={112}><HeaderTitle overline="Saison 26/27" title="Rangliste" /></AppHeader>}>
       <View style={[{ flexDirection: 'row', backgroundColor: c.card, borderRadius: 999, padding: 5 }, shadow.card]}>
         {PERIODS.map((p) => {
           const sel = p.id === period;

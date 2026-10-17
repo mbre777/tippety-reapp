@@ -11,7 +11,7 @@ export function Screen({ header, children, footer }: { header: ReactNode; childr
   const insets = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: TOOLBAR_SPACE + insets.bottom + 16 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: TOOLBAR_SPACE + insets.bottom + 36 }} showsVerticalScrollIndicator={false}>
         {header}
         <View style={{ marginTop: -SHEET_OVERLAP, backgroundColor: c.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 18, paddingTop: 18, minHeight: 600 }}>
           {children}
