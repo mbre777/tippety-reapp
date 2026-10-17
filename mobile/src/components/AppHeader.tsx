@@ -5,7 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useSport } from '@/sport/SportContext';
 import { useTheme } from '@/theme/ThemeProvider';
-import { myStatsSync } from './headerData';
+import { useSession } from '@/auth/session';
+import { initialsOf } from '@/lib/initials';
 import { Logo } from './Logo';
 import { FieldBackground } from './FieldBackground';
 import { ChevronLeft } from './Icons';
@@ -13,15 +14,15 @@ import { OpenTipsPill } from './OpenTipsPill';
 
 export const SHEET_OVERLAP = 28;
 
-type Props = { children?: ReactNode; height?: number; back?: boolean };
+type Props = { children?: ReactNode; height?: number; back?: boolean; title?: string; center?: string; right?: ReactNode; hidePill?: boolean; hideAvatar?: boolean };
 
 /** Kopfbereich mit Spielfeld/Eisfläche, Logo, Streak-Pill und Avatar. */
-export function AppHeader({ children, height = 128, back }: Props) {
+export function AppHeader({ children, height = 128, back, title, center, right, hidePill, hideAvatar }: Props) {
   const { sport } = useSport();
   const { accent, fonts, c } = useTheme();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const stats = myStatsSync(sport);
+  const { profile } = useSession();
   const h = height + insets.top;
   return (
     <View style={{ height: h + SHEET_OVERLAP, overflow: 'hidden' }}>
@@ -33,19 +34,29 @@ export function AppHeader({ children, height = 128, back }: Props) {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Zurück"
-                onPress={() => (router.canGoBack() ? router.back() : router.replace('/spiele'))}
-                style={[styles.back, { backgroundColor: 'rgba(255,255,255,0.92)' }]}
+                onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+                style={[styles.back, { backgroundColor: sport === 'football' ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.92)' }]}
               >
-                <ChevronLeft color={accent.main} />
+                <ChevronLeft color={sport === 'football' ? '#fff' : accent.headerText} />
               </Pressable>
             ) : null}
-            <Logo color={accent.headerText} accent={sport === 'football' ? '#7BE0A2' : accent.main} />
+            {title ? (
+              <Text style={{ fontFamily: fonts.display, fontSize: 28, color: accent.headerText }} numberOfLines={1}>{title}</Text>
+            ) : center ? null : (
+              <Logo color={accent.headerText} accent={sport === 'football' ? '#7BE0A2' : accent.main} />
+            )}
           </View>
+          {center ? (
+            <Text style={{ position: 'absolute', left: 50, right: 50, textAlign: 'center', fontFamily: fonts.bodyHeavy, fontSize: 15, color: accent.headerText }} numberOfLines={1}>{center}</Text>
+          ) : null}
           <View style={[styles.row, { gap: 8 }]}>
-            <OpenTipsPill />
-            <View style={[styles.avatar, { backgroundColor: c.card }]}>
-              <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 14, color: accent.main }}>{stats.initials}</Text>
-            </View>
+            {hidePill ? null : <OpenTipsPill />}
+            {right}
+            {hideAvatar ? null : (
+              <Pressable accessibilityRole="button" accessibilityLabel="Profil & Einstellungen" onPress={() => router.push('/profil')} style={[styles.avatar, { backgroundColor: c.card }]}>
+                <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 14, color: accent.main }}>{initialsOf(profile?.nickname)}</Text>
+              </Pressable>
+            )}
           </View>
         </View>
         <View style={{ marginTop: 4 }}>{children}</View>
@@ -69,7 +80,7 @@ export function HeaderTitle({ overline, title }: { overline: string; title: stri
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 30, paddingHorizontal: 12, borderRadius: 999 },
-  avatar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
   back: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', marginRight: 10 },
 });
 

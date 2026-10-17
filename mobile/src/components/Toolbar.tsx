@@ -3,10 +3,13 @@ import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSport } from '@/sport/SportContext';
 import { useTheme } from '@/theme/ThemeProvider';
-import { HomeIcon, TrophyIcon, UsersIcon } from './Icons';
+import { useMyLeagues } from '@/sport/useMyLeagues';
+import { CalendarIcon, HomeIcon, TrophyIcon, UsersIcon } from './Icons';
 import { SportGlyph } from './SportIcons';
 
 export const TOOLBAR_SPACE = 104;
+/** Kein Toolbar auf Login, Onboarding und Profil */
+const HIDDEN = ['/login', '/onboarding', '/profil'];
 
 type Tab = { href: '/' | '/spiele' | '/rangliste' | '/gruppen'; label: string };
 const TABS: Tab[] = [
@@ -22,14 +25,16 @@ export function Toolbar() {
   const { sport, toggleSport } = useSport();
   const { c, accent, fonts, shadow } = useTheme();
   const insets = useSafeAreaInsets();
-  const active = pathname.startsWith('/spiel') ? '/spiele' : pathname;
+  const { hasFootball, hasHockey } = useMyLeagues();
+  const active = pathname.startsWith('/spiel') || pathname.startsWith('/fertig') ? '/spiele' : pathname;
+  if (HIDDEN.some((h) => pathname.startsWith(h))) return null;
 
   const icon = (href: Tab['href'], color: string) => {
     switch (href) {
       case '/':
         return <HomeIcon color={color} />;
       case '/spiele':
-        return <View style={{ opacity: color === accent.main ? 1 : 0.5 }}><SportGlyph sport={sport} size={24} /></View>;
+        return <CalendarIcon color={color} size={24} strokeWidth={1.8} />;
       case '/rangliste':
         return <TrophyIcon color={color} />;
       default:
@@ -60,14 +65,17 @@ export function Toolbar() {
           );
         })}
       </View>
+      {hasFootball && hasHockey ? (
       <Pressable
+        testID="sport-toggle"
         accessibilityRole="switch"
         accessibilityLabel={sport === 'football' ? 'Zu Eishockey wechseln' : 'Zu Fußball wechseln'}
         onPress={toggleSport}
-        style={[styles.sport, shadow.card, { backgroundColor: accent.main }]}
+        style={[styles.sport, shadow.card, { backgroundColor: c.card, borderColor: accent.main }]}
       >
         <SportGlyph sport={sport} size={40} />
       </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -76,5 +84,5 @@ const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
   pill: { flex: 1, flexDirection: 'row', height: 70, borderRadius: 35, padding: 6, borderWidth: StyleSheet.hairlineWidth },
   tab: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, borderRadius: 29 },
-  sport: { width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center' },
+  sport: { width: 70, height: 70, borderRadius: 35, alignItems: 'center', justifyContent: 'center', borderWidth: 2.5 },
 });
