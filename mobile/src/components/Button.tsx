@@ -18,11 +18,11 @@ export function Button({ label, onPress, variant = 'primary', icon, loading, sty
   const v = conf[variant];
   return (
     <Pressable testID={testID} accessibilityRole="button" accessibilityState={{ disabled: variant === 'disabled' }} disabled={variant === 'disabled' || loading} onPress={onPress}
-      style={({ pressed }) => [{ height, borderRadius: height / 2, backgroundColor: v.bg, borderWidth: v.border ? 1.5 : 0, borderColor: v.border, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.85 : 1 }, style]}>
+      style={({ pressed }) => [{ height, borderRadius: height / 2, paddingHorizontal: 18, backgroundColor: v.bg, borderWidth: v.border ? 1.5 : 0, borderColor: v.border, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.85 : 1 }, style]}>
       {loading ? <ActivityIndicator color={v.fg} /> : (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, maxWidth: '100%' }}>
           {icon}
-          <Text style={{ fontFamily: fonts.bodyHeavy, fontSize, color: v.fg }}>{label}</Text>
+          <Text style={{ fontFamily: fonts.bodyHeavy, fontSize, color: v.fg, flexShrink: 1 }} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>{label}</Text>
         </View>
       )}
     </Pressable>

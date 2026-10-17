@@ -33,8 +33,8 @@ export default function Gruppen() {
     <Screen header={<AppHeader height={74} hidePill />}>
       <Text style={{ fontFamily: fonts.display, fontSize: 36, color: c.text }}>Gruppen</Text>
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-        <Button testID="group-create" label="Gruppe erstellen" icon={<PlusIcon color="#fff" />} onPress={() => setSheet('create')} style={{ flex: 1 }} height={56} fontSize={15} />
-        <Button testID="group-join" label="Mit Code beitreten" variant="outline" icon={<KeyIcon color={accent.main} size={18} />} onPress={() => setSheet('join')} style={{ flex: 1.05 }} height={56} fontSize={15} />
+        <Button testID="group-create" label="Neue Gruppe" icon={<PlusIcon color="#fff" />} onPress={() => setSheet('create')} style={{ flex: 1 }} height={56} fontSize={15} />
+        <Button testID="group-join" label="Code eingeben" variant="outline" icon={<KeyIcon color={accent.main} size={18} />} onPress={() => setSheet('join')} style={{ flex: 1 }} height={56} fontSize={15} />
       </View>
 
       <Text style={{ fontFamily: fonts.bodyHeavy, fontSize: 12, letterSpacing: 1.6, color: c.textMuted, marginTop: 24, marginBottom: 12 }}>DEINE GRUPPEN · {groups.length}</Text>
