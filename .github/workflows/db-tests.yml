@@ -1,0 +1,44 @@
+# DB-Tests (Migrationen + pgTAP) und Deno-Typecheck der Edge Functions.
+# Laeuft bei JEDEM PR und Push auf main (kein Pfadfilter): ~1-2 Min, damit der Check immer vorhanden ist
+# und spaeter als Required Check taugt. Keine Secrets, keine Verbindung zur echten DB.
+name: DB-Tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: db-tests-${{ github.ref }}
+  cancel-in-progress: true
+permissions: { contents: read }
+jobs:
+  pgtap:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      PGCLUSTER: 17/ci
+      DB: tippety_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Postgres 17 + pgTAP + pg_cron (PGDG)
+        run: |
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-17 postgresql-17-pgtap postgresql-17-cron libtap-parser-sourcehandler-pgtap-perl
+          sudo pg_createcluster 17 ci -p 5499
+          echo "shared_preload_libraries = 'pg_cron'" | sudo tee -a /etc/postgresql/17/ci/postgresql.conf
+          echo "cron.database_name = '${DB}'"          | sudo tee -a /etc/postgresql/17/ci/postgresql.conf
+          sudo pg_ctlcluster 17 ci start
+      - name: Migrationen + pgTAP
+        # Checkout liegt unter /home/runner (fuer postgres nicht lesbar) -> Kopie nach /tmp
+        run: |
+          cp -r "$GITHUB_WORKSPACE" /tmp/repo && sudo chown -R postgres /tmp/repo
+          sudo -u postgres env PGCLUSTER=$PGCLUSTER DB=$DB bash /tmp/repo/scripts/test_local.sh
+  deno-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with: { deno-version: v2.x }
+      - run: deno check scripts/import.ts supabase/functions/import/index.ts
