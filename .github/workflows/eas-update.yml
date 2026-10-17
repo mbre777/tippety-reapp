@@ -1,0 +1,25 @@
+name: EAS Update (preview)
+on:
+  push:
+    branches: [main]
+    paths: ['mobile/**', '.github/workflows/eas-update.yml']
+  workflow_dispatch:
+concurrency: { group: eas-update-preview, cancel-in-progress: true }
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: mobile } }
+    env:
+      EXPO_PUBLIC_BACKEND: ${{ vars.EXPO_PUBLIC_BACKEND }}
+      EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: mobile/package-lock.json }
+      - uses: expo/expo-github-action@v8
+        with: { eas-version: latest, token: '${{ secrets.EXPO_TOKEN }}' }
+      - run: npm ci
+      - run: npx tsc --noEmit
+      # Branch "preview" (= Channel preview). Kein runtimeVersion in app.json → Update läuft in Expo Go (SDK 57).
+      - run: eas update --auto --branch preview --non-interactive --message "${{ github.event.head_commit.message || 'manual' }}"
