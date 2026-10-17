@@ -15,7 +15,9 @@ export const leagues: League[] = [
   L('nhl', 'hockey', 'NHL', 'USA / Kanada', '🇺🇸', 'NHL', '#111111', true),
 ];
 
-const t = (id: string, name: string, short: string, bg: string, fg = '#FFFFFF', shortName?: string): Team => ({ id, name, short, colors: [bg, fg], shortName });
+const t = (id: string, name: string, short: string, bg: string, fg = '#FFFFFF', shortName?: string, secondary?: string): Team => ({ id, name, short, colors: [bg, fg], shortName, secondary });
+/** Team ohne bekannte Vereinsfarben (Fallback-Badge) */
+const nc = (id: string, name: string, short: string, shortName?: string): Team => ({ id, name, short, colors: ['#E3E8EF', '#1B2433'], shortName, noColors: true });
 
 export const teams = {
   // Bundesliga
@@ -28,11 +30,20 @@ export const teams = {
   scf: t('scf', 'SC Freiburg', 'SCF', '#C8102E'),
   m05: t('m05', 'Mainz 05', 'M05', '#C3141E'),
   wob: t('wob', 'VfL Wolfsburg', 'WOB', '#65B32E', '#FFFFFF', 'Wolfsburg'),
-  // Österreich
-  rap: t('rap', 'SK Rapid Wien', 'SCR', '#00824A', '#FFFFFF', 'Rapid Wien'),
-  fak: t('fak', 'FK Austria Wien', 'FAK', '#5A2D82', '#FFFFFF', 'Austria Wien'),
-  rbs: t('rbs', 'FC Red Bull Salzburg', 'RBS', '#D6002A', '#FFFFFF', 'RB Salzburg'),
-  stu: t('stu', 'SK Sturm Graz', 'STU', '#1A1A1A', '#FFFFFF', 'Sturm Graz'),
+  // Österreich – Farben aus colors/at-bundesliga.json
+  rap: t('rap', "SK Rapid", 'SCR', '#00794C', '#FFFFFF', undefined, '#FFFFFF'),
+  rbs: t('rbs', "FC Red Bull Salzburg", 'RBS', '#DB0A40', '#FFFFFF', "RB Salzburg", '#0C2044'),
+  at_ask: t('at_ask', "LASK", 'ASK', '#151616', '#FFFFFF', undefined, '#FFFFFF'),
+  stu: t('stu', "SK Sturm Graz", 'STU', '#000000', '#FFFFFF', 'Sturm Graz', '#FFFFFF'),
+  at_htb: t('at_htb', "TSV Hartberg", 'HTB', '#00497D', '#FFFFFF', undefined, '#FFFFFF'),
+  at_svr: t('at_svr', "SV Ried", 'SVR', '#007C4F', '#FFFFFF', undefined, '#000000'),
+  at_gak: t('at_gak', "Grazer AK 1902", 'GAK', '#C3171F', '#FFFFFF', undefined, '#FFFFFF'),
+  at_wsg: t('at_wsg', "WSG Tirol", 'WSG', '#2C943E', '#FFFFFF', undefined, '#050606'),
+  at_alu: t('at_alu', "SC Austria Lustenau", 'ALU', '#00803D', '#FFFFFF', undefined, '#FDC100'),
+  fak: t('fak', "FK Austria Wien", 'FAK', '#604696', '#FFFFFF', "Austria Wien", '#34175C'),
+  at_alt: t('at_alt', "SCR Altach", 'ALT', '#000000', '#FFD700', undefined, '#FFD700'),
+  at_wac: t('at_wac', "Wolfsberger AC", 'WAC', '#211E1E', '#FFFFFF', undefined, '#EB1923'),
+  smf: nc('smf', 'SV Sportunion Mauerwerk Allerheiligen-Feldkirchen', 'SMF', 'Allerheiligen-F.'), // Fallback ohne Farben, langer Name
   // Schweiz Fußball
   yb: t('yb', 'BSC Young Boys', 'YB', '#FFD200', '#111111', 'Young Boys'),
   fcbs: t('fcbs', 'FC Basel 1893', 'FCB', '#D2001E', '#FFFFFF', 'FC Basel'),

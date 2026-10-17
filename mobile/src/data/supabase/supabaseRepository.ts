@@ -5,6 +5,7 @@ import { leagueCatalog } from '../leagueCatalog';
 import { supabase } from './client';
 import { tryFeature } from './features';
 import { initialsOf } from '@/lib/initials';
+import { resolveTeamColors, validHex } from '@/lib/teamColors';
 import { normalizeCode } from '@/lib/inviteCode';
 
 /**
@@ -12,7 +13,7 @@ import { normalizeCode } from '@/lib/inviteCode';
  * für Migration 0005 (feat/schema-client-gaps). Fehlt eine Spalte/RPC → bisherige Ersatzlösung.
  * Vertrag: docs/client-api-vertrag.md
  */
-type TeamRow = { id: string; name: string; short_name: string | null; logo_url: string | null; color?: string | null };
+type TeamRow = { id: string; name: string; short_name: string | null; color?: string | null; primary_color?: string | null; secondary_color?: string | null; text_color?: string | null };
 type MatchRow = {
   id: string; sport: Match['sport']; league_id: string; round: string | null; kickoff_at: string; status: Match['status'];
   home_regular: number | null; away_regular: number | null; home_final: number | null; away_final: number | null; decided_by: Match['decision'] | null;
@@ -20,34 +21,42 @@ type MatchRow = {
   home: TeamRow; away: TeamRow;
 };
 const BASE = 'id,sport,league_id,round,kickoff_at,status,home_regular,away_regular,home_final,away_final,decided_by';
-const TEAM_BASE = 'id,name,short_name,logo_url';
-const sel = (extra: boolean) => {
-  const t = extra ? `${TEAM_BASE},color` : TEAM_BASE;
-  return `${BASE}${extra ? ',is_top_match,matchday,venue' : ''},home:teams!matches_home_team_id_fkey(${t}),away:teams!matches_away_team_id_fkey(${t})`;
+// Keine Vereinslogos: logo_url wird bewusst nicht geladen.
+const TEAM_BASE = 'id,name,short_name';
+/** level 2 = Vereinsfarben (feat/team-colors-at) + 0005, 1 = nur 0005 (teams.color), 0 = Basis */
+const sel = (level: 0 | 1 | 2) => {
+  const t = level === 2 ? `${TEAM_BASE},color,primary_color,secondary_color,text_color` : level === 1 ? `${TEAM_BASE},color` : TEAM_BASE;
+  return `${BASE}${level ? ',is_top_match,matchday,venue' : ''},home:teams!matches_home_team_id_fkey(${t}),away:teams!matches_away_team_id_fkey(${t})`;
 };
 type Builder = ReturnType<ReturnType<ReturnType<typeof supabase>['from']>['select']>;
 type Res = PromiseLike<{ data: unknown; error: { code?: string; message?: string } | null }>;
 /** Spiele-Query: erst mit 0005-Spalten (is_top_match, matchday, venue, teams.color), sonst Basis-Spalten */
 async function queryMatches(f: (b: Builder) => Res): Promise<unknown> {
-  return tryFeature<unknown>('matches_0005', () => f(supabase().from('matches').select(sel(true))), async () => {
-    const r = await f(supabase().from('matches').select(sel(false)));
+  const level0 = async () => {
+    const r = await f(supabase().from('matches').select(sel(0)));
     if (r.error) throw mapDbError(r.error);
     return r.data;
-  }).catch((e) => {
+  };
+  const level1 = () => tryFeature<unknown>('matches_0005', () => f(supabase().from('matches').select(sel(1))), level0);
+  return tryFeature<unknown>('team_colors', () => f(supabase().from('matches').select(sel(2))), level1).catch((e) => {
     throw mapDbError(e);
   });
 }
 const many = async (f: (b: Builder) => Res) => ((await queryMatches(f)) ?? []) as MatchRow[];
 const one = async (f: (b: Builder) => Res) => ((await queryMatches(f)) ?? null) as MatchRow | null;
 
-const HEX = /^#[0-9A-Fa-f]{6}$/;
-const contrast = (hex: string) => {
-  const n = parseInt(hex.slice(1), 16);
-  return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150 ? '#111111' : '#FFFFFF';
+/** Kürzel: short_name (aus colors/*.json „short“, z. B. „SCR“) – sonst aus dem Namen abgeleitet */
+const abbr = (t: TeamRow) => {
+  const s = t.short_name?.trim();
+  if (s && s.length <= 4 && !/\s/.test(s)) return s.toUpperCase();
+  const words = t.name.replace(/[^A-Za-zÄÖÜäöü\s]/g, '').split(/\s+/).filter((w) => w.length > 2);
+  return (words.length >= 2 ? words.slice(0, 3).map((w) => w[0]).join('') : (words[0] ?? t.name).slice(0, 3)).toUpperCase();
 };
 const team = (t: TeamRow): Team => {
-  const bg = t.color && HEX.test(t.color) ? t.color : '#5D6E86';
-  return { id: t.id, name: t.name, shortName: t.short_name ?? undefined, short: (t.short_name ?? t.name).replace(/[^A-Za-zÄÖÜäöü]/g, '').slice(0, 3).toUpperCase(), colors: [bg, contrast(bg)] };
+  // primary_color (neu) → color (Alias/alt) → neutral
+  const c = resolveTeamColors(t.primary_color ?? t.color, t.secondary_color, t.text_color);
+  const s = t.short_name?.trim();
+  return { id: t.id, name: t.name, shortName: s && s.length > 4 ? s : undefined, short: abbr(t), colors: [c.bg, c.fg], secondary: validHex(t.secondary_color), noColors: c.fallback };
 };
 const pair = (h: number | null, a: number | null): Score | undefined => (h != null && a != null ? { home: h, away: a } : undefined);
 const EMPTY_COMMUNITY: CommunityTips = { home: 0, draw: 0, away: 0, total: 0 };

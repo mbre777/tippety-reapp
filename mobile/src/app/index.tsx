@@ -3,7 +3,7 @@ import { FlatList, Pressable, Text, View, useWindowDimensions } from 'react-nati
 import { router } from 'expo-router';
 import { AppHeader } from '@/components/AppHeader';
 import { Card } from '@/components/Card';
-import { Crest } from '@/components/Crest';
+import { TeamBadge } from '@/components/TeamBadge';
 import { ChevronRight, UsersIcon } from '@/components/Icons';
 import { ScoreBox } from '@/components/ScoreBox';
 import { Screen } from '@/components/Screen';
@@ -79,13 +79,10 @@ export default function Home() {
 }
 
 function TeamCol({ team }: { team: Team }) {
-  const { c, fonts } = useTheme();
+  // Home: nur Kürzel im Vereinsfarben-Badge
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
-      <Crest team={team} size={54} />
-      <Text style={{ fontFamily: fonts.display, fontSize: 20, lineHeight: 23, color: c.text, textAlign: 'center', marginTop: 8 }} numberOfLines={2}>
-        {team.shortName ?? team.name}
-      </Text>
+      <TeamBadge team={team} size={50} />
     </View>
   );
 }

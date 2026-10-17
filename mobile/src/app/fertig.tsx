@@ -4,7 +4,7 @@ import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { CheckIcon } from '@/components/Icons';
-import { Crest } from '@/components/Crest';
+import { TeamBadge } from '@/components/TeamBadge';
 import { Screen } from '@/components/Screen';
 import { MOCK_TODAY, leagueName, repo, useQuery, useTipsVersion } from '@/data';
 import { relDay, timeOf } from '@/lib/date';
@@ -53,7 +53,7 @@ export default function Fertig() {
       <View style={{ gap: 10 }}>
         {(info?.tipped ?? []).map((m) => (
           <Card key={m.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13 }}>
-            <Crest team={m.home} size={26} />
+            <TeamBadge team={m.home} size={24} />
             <Text style={{ flex: 1, fontFamily: fonts.display, fontSize: 19, color: c.text }} numberOfLines={1}>{m.home.shortName ?? m.home.name} – {m.away.shortName ?? m.away.name}</Text>
             <Text style={{ fontFamily: fonts.display, fontSize: 21, color: accent.main }}>{m.myTip?.home}:{m.myTip?.away}</Text>
           </Card>
