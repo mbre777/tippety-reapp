@@ -20,6 +20,7 @@ export type League = {
   /** Kürzel fürs Liga-Badge */
   code: string;
   color: string;
+  flagUrl?: string;
   /** false = „bald verfügbar“, noch nicht wählbar */
   available: boolean;
 };
@@ -53,6 +54,8 @@ export type Match = {
   myTip?: Score;
   community: CommunityTips;
   topMatch?: boolean;
+  /** Spieltag-Nummer (falls vom Schema geliefert) */
+  matchday?: number;
 };
 
 export type LeaderboardPeriod = 'season' | 'round' | 'month';
@@ -79,6 +82,8 @@ export type Group = {
   isPrivate: boolean;
   leader: string;
   memberInitials: string[];
+  /** true = Ligen der Gruppe sind bekannt (sonst: alle eigenen Ligen angenommen) */
+  leaguesKnown?: boolean;
 };
 
 export type UserStats = {

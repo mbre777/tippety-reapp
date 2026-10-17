@@ -25,6 +25,29 @@ Alle Aufrufe mit User-JWT, Schema `public`, `auth.uid()` implizit.
 
 Alle anderen Writes nur per RPC. Die zuvor als „offen mit DB-Bot“ markierten Punkte (Rangliste pro Liga, Ligen-Auswahl/Lieblingsliga, `nickname_reserved`) sind damit **aufgelöst**.
 
+## Migration 0005 (feat/schema-client-gaps) – Feature-Detection
+
+Der Client baut gegen die geplanten Namen und fällt automatisch zurück, wenn Spalte/RPC fehlt
+(`mobile/src/data/supabase/features.ts`: PostgREST-/Postgres-Codes `PGRST200/202/204/205`, `42703`, `42883`, `42P01`;
+**`42501` Permission denied gilt nicht als „fehlt“** und wird als Fehler gemeldet). Ergebnis wird pro App-Start gemerkt.
+
+| 0005-Name | Nutzung | Fallback ohne 0005 |
+|---|---|---|
+| `leagues.short_name, color, flag_url, country_code` | Liga-Badge, Flagge (Emoji aus `country_code`) | Client-Mapping per Liganame, sonst neutral |
+| `teams.color` | Wappenfarbe (Schrift kontrastiert automatisch) | neutrales Grau |
+| `matches.is_top_match, matchday, venue` | Topspiel-Karussell, Spieltag-Gruppierung, Spielort | nächste Spiele, `round`-Text, leer |
+| `groups.is_private`, `group_leagues` | Gruppenliste, Liga-Filter | privat, „alle Ligen“ |
+| `create_group(p_name, p_league_ids, p_is_private)` | Gruppe erstellen | `create_group(p_name)` |
+| `preview_group_by_code(p_code)` | Vorschau vor Beitritt, `invalid_code` | Platzhalter „Gruppe XXXX-XXXX“ |
+| `profiles.reminder_enabled`, `update_profile_settings(…)` | Erinnerung (Minuten fix 60) | AsyncStorage lokal |
+| `get_match_tip_distribution(p_match_id)` (P2) | Community-Tipps | leere Karte |
+| `leaderboard_period(…, 'matchday'\|'month'\|'season', …)` (P2) | Rangliste Spieltag/Monat | Saison-View |
+| `points_week`, `rank_change` in Views (P2) | „+x diese Woche“, ▲▼ | 0 / neutral |
+
+## Schema-Wünsche
+
+- **Ligen vor dem Login lesbar** (`grant select on leagues to anon` oder RPC `public_leagues()`): Der Login-Screen zeigt „Fußball · N Ligen / Eishockey · …“. Aktuell zählt der Client mit dem statischen Katalog; nach Login wird der echte Katalog geladen. Kein Blocker – die Ligen-Auswahl kommt erst nach dem Login.
+
 ## Offen (Gerüst nutzt Fallback, markiert mit `OFFEN` im Code)
 
 | Thema | Fallback in der App | Vorschlag |

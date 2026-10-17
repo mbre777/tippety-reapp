@@ -24,11 +24,12 @@ function useAuthGate() {
   useEffect(() => {
     if (!ready) auth.getProfile().then(setSession, () => setSession(null));
   }, [ready]);
+  useEffect(() => auth.onSignedOut?.(() => setSession(null)), []);
   const step = onboardingStep(profile);
   const first = segments[0] ?? '';
   const second = segments[1] ?? '';
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || first === 'auth-callback') return;
     if (step === 'login' && first !== 'login') router.replace('/login');
     else if (step === 'nickname' && !(first === 'onboarding' && second === 'nickname')) router.replace('/onboarding/nickname');
     else if (step === 'leagues' && !(first === 'onboarding' && second === 'ligen')) router.replace('/onboarding/ligen');

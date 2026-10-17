@@ -9,7 +9,7 @@ import { SportGlyph } from './SportIcons';
 
 export const TOOLBAR_SPACE = 104;
 /** Kein Toolbar auf Login, Onboarding und Profil */
-const HIDDEN = ['/login', '/onboarding', '/profil'];
+const HIDDEN = ['/login', '/onboarding', '/profil', '/auth-callback'];
 
 type Tab = { href: '/' | '/spiele' | '/rangliste' | '/gruppen'; label: string };
 const TABS: Tab[] = [

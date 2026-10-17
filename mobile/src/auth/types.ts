@@ -18,6 +18,8 @@ export interface AuthService {
   getProfile(): Promise<Profile | null>;
   signIn(provider: AuthProvider): Promise<Profile>;
   signOut(): Promise<void>;
+  /** Optional: Abmeldung von außen (Token abgelaufen, anderes Gerät) melden */
+  onSignedOut?(cb: () => void): () => void;
 }
 
 /** Profil-Daten des eingeloggten Users. */

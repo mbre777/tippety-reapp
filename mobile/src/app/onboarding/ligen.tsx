@@ -23,8 +23,10 @@ export default function Ligen() {
   const { profile } = useSession();
   const { setSport } = useSport();
   const { c, accent, fonts, shadow } = useTheme();
-  const [sel, setSel] = useState<string[]>(profile?.leagueIds.length ? profile.leagueIds : ['bl']);
-  const [fav, setFav] = useState<string | undefined>(profile?.leagueIds.length ? profile.favoriteLeagueId : 'bl');
+  // Vorauswahl: erste verfügbare Fußball-Liga (ID-unabhängig: Mock-Slug oder Supabase-UUID)
+  const firstLeague = allLeagues.find((l) => l.available && l.sport === 'football')?.id ?? allLeagues.find((l) => l.available)?.id;
+  const [sel, setSel] = useState<string[]>(profile?.leagueIds.length ? profile.leagueIds : firstLeague ? [firstLeague] : []);
+  const [fav, setFav] = useState<string | undefined>(profile?.leagueIds.length ? profile.favoriteLeagueId : firstLeague);
   const [saving, setSaving] = useState(false);
 
   const toggle = (l: League) => {

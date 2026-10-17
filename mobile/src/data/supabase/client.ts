@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 /**
  * Supabase-Client. Keys kommen ausschließlich aus Env (EXPO_PUBLIC_* ist im App-Bundle sichtbar –
@@ -23,6 +23,11 @@ export function supabase(): SupabaseClient {
         flowType: 'pkce',
       },
     });
+    // Token-Refresh nur im Vordergrund (Empfehlung Supabase für React Native)
+    if (Platform.OS !== 'web') {
+      const c = client;
+      AppState.addEventListener('change', (st) => (st === 'active' ? c.auth.startAutoRefresh() : c.auth.stopAutoRefresh()));
+    }
   }
   return client;
 }
