@@ -27,7 +27,7 @@ select is((select count(*)::int from public.leaderboard_group where league_id is
 set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-00000000000a"}';
 select lives_ok($$ select public.leave_group((select id from g)) $$, 'Owner verlaesst Gruppe');
 reset role;
-select is((select owner_id from public.groups), '00000000-0000-0000-0000-00000000000b'::uuid, 'Ownership uebertragen');
+select is((select owner_id from public.groups where id = (select id from g)), '00000000-0000-0000-0000-00000000000b'::uuid, 'Ownership uebertragen');
 
 -- Kollisionsfreiheit: viele Gruppen, alle Codes eindeutig
 set local role authenticated;
